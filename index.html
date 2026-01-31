@@ -91,7 +91,13 @@
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             z-index: 50;
-            white-space: nowrap;
+            white-space: normal;
+            /* 改行を許可 */
+            text-align: center;
+            /* 中央揃え */
+            line-height: 1.2;
+            width: 90%;
+            /* スマホではみ出さないように幅制限 */
         }
 
         #electron-kun {
@@ -237,10 +243,20 @@
         }
 
         #title-screen h1 {
+            font-family: "Times New Roman", "YuMincho", "Hiragino Mincho ProN", serif;
+            /* 高級感のあるセリフ体 */
             font-size: 60px;
-            color: #f1c40f;
-            text-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
-            margin-bottom: 10px;
+            background: linear-gradient(to bottom, #f1c40f, #f39c12, #b7950b);
+            /* ゴールドグラデーション */
+            -webkit-background-clip: text;
+            background-clip: text;
+            /* 標準プロパティも追加 */
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            /* text-shadowの代わり */
+            margin-bottom: 20px;
+            line-height: 1.2;
+            letter-spacing: 2px;
         }
 
         .subtitle {
@@ -283,7 +299,7 @@
         </div>
 
         <div id="title-screen">
-            <h1>クリスタルビルダー</h1>
+            <h1>クリスタル<br>ビルダー</h1>
             <p class="subtitle">イオン結合パズル</p>
             <p style="font-size: 20px; margin-bottom: 30px;">ハイスコア: <span id="high-score-display">0</span></p>
             <button class="btn" id="start-btn">スタート</button>
@@ -713,16 +729,15 @@
 
         function showCompoundName(name) {
             const el = document.getElementById('compound-name-display');
-            if (el) {
-                el.innerText = name + " 生成！";
-                el.style.opacity = 1;
-                el.style.transform = "translate(-50%, -50%) scale(1.2)";
+            // スマホ画面に収まるよう、「生成！」の前で改行を入れる
+            el.innerHTML = name + "<span style='font-size:0.8em; display:block; margin-top:5px;'>生成！</span>";
+            el.style.opacity = '1';
+            el.style.transform = 'translate(-50%, -50%) scale(1.2)';
 
-                setTimeout(() => {
-                    el.style.opacity = 0;
-                    el.style.transform = "translate(-50%, -50%) scale(0.8)";
-                }, 2000);
-            }
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translate(-50%, -50%) scale(0.8)';
+            }, 1000);
         }
 
         function updateScore() {
