@@ -98,15 +98,15 @@
             position: absolute;
             bottom: 20px;
             left: 20px;
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             background-color: #f1c40f;
             border-radius: 50%;
             border: 4px solid #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 16px;
             box-shadow: 0 0 15px #f1c40f;
             transition: transform 0.2s;
             pointer-events: none;
@@ -293,19 +293,19 @@
     <script>
         // --- 設定とデータ ---
         const IONS = [
-            // 陽イオン（半径を初期の2倍に設定）
-            { formula: "Na⁺", charge: 1, radius: 50, color: "#e74c3c", type: "cation", baseName: "ナトリウム", name: "ナトリウムイオン" },
-            { formula: "Mg²⁺", charge: 2, radius: 36, color: "#d35400", type: "cation", baseName: "マグネシウム", name: "マグネシウムイオン" },
-            { formula: "NH₄⁺", charge: 1, radius: 70, color: "#f39c12", type: "cation", baseName: "アンモニウム", name: "アンモニウムイオン" },
-            { formula: "Al³⁺", charge: 3, radius: 40, color: "#e67e22", type: "cation", baseName: "アルミニウム", name: "アルミニウムイオン" },
-            { formula: "Cu²⁺", charge: 2, radius: 45, color: "#c0392b", type: "cation", baseName: "銅(II)", name: "銅(II)イオン" },
+            // 陽イオン（半径を初期の1.6倍に設定 / 前回の0.8倍）
+            { formula: "Na⁺", charge: 1, radius: 40, color: "#e74c3c", type: "cation", baseName: "ナトリウム", name: "ナトリウムイオン" },
+            { formula: "Mg²⁺", charge: 2, radius: 29, color: "#d35400", type: "cation", baseName: "マグネシウム", name: "マグネシウムイオン" },
+            { formula: "NH₄⁺", charge: 1, radius: 56, color: "#f39c12", type: "cation", baseName: "アンモニウム", name: "アンモニウムイオン" },
+            { formula: "Al³⁺", charge: 3, radius: 32, color: "#e67e22", type: "cation", baseName: "アルミニウム", name: "アルミニウムイオン" },
+            { formula: "Cu²⁺", charge: 2, radius: 36, color: "#c0392b", type: "cation", baseName: "銅(II)", name: "銅(II)イオン" },
 
             // 陰イオン
-            { formula: "Cl⁻", charge: -1, radius: 90, color: "#3498db", type: "anion", baseName: "塩化", name: "塩化物イオン" },
-            { formula: "SO₄²⁻", charge: -2, radius: 124, color: "#8e44ad", type: "anion", baseName: "硫酸", name: "硫酸イオン" },
-            { formula: "O²⁻", charge: -2, radius: 70, color: "#1abc9c", type: "anion", baseName: "酸化", name: "酸化物イオン" },
-            { formula: "CO₃²⁻", charge: -2, radius: 110, color: "#9b59b6", type: "anion", baseName: "炭酸", name: "炭酸イオン" },
-            { formula: "OH⁻", charge: -1, radius: 80, color: "#2980b9", type: "anion", baseName: "水酸化", name: "水酸化物イオン" }
+            { formula: "Cl⁻", charge: -1, radius: 72, color: "#3498db", type: "anion", baseName: "塩化", name: "塩化物イオン" },
+            { formula: "SO₄²⁻", charge: -2, radius: 99, color: "#8e44ad", type: "anion", baseName: "硫酸", name: "硫酸イオン" },
+            { formula: "O²⁻", charge: -2, radius: 56, color: "#1abc9c", type: "anion", baseName: "酸化", name: "酸化物イオン" },
+            { formula: "CO₃²⁻", charge: -2, radius: 88, color: "#9b59b6", type: "anion", baseName: "炭酸", name: "炭酸イオン" },
+            { formula: "OH⁻", charge: -1, radius: 64, color: "#2980b9", type: "anion", baseName: "水酸化", name: "水酸化物イオン" }
         ];
 
         const TITLES = [
@@ -558,7 +558,7 @@
                 const ctx = render.context;
                 const bodies = Composite.allBodies(engine.world);
 
-                ctx.font = "bold 32px Arial"; // フォントサイズを2倍相当(32px)に調整
+                ctx.font = "bold 26px Arial"; // フォントサイズを縮小 (32px * 0.8 ≈ 26px)
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
 
@@ -582,13 +582,27 @@
                 // ゲームオーバーラインの描画
                 const width = render.options.width;
                 const deadlineY = render.options.height * 0.2;
+
+                // 危険エリアの背景（薄い赤）
+                ctx.fillStyle = "rgba(255, 0, 0, 0.05)";
+                ctx.fillRect(0, 0, width, deadlineY);
+
+                // ライン
                 ctx.beginPath();
                 ctx.moveTo(0, deadlineY);
                 ctx.lineTo(width, deadlineY);
-                ctx.strokeStyle = "rgba(231, 76, 60, 0.3)";
-                ctx.setLineDash([10, 10]);
+                ctx.strokeStyle = "rgba(255, 0, 0, 0.8)"; // 濃い赤
+                ctx.lineWidth = 4; // 太く
+                ctx.setLineDash([15, 10]); // 点線
                 ctx.stroke();
                 ctx.setLineDash([]);
+                ctx.lineWidth = 1; // 戻す
+
+                // 警告テキスト
+                ctx.font = "bold 20px Arial";
+                ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
+                ctx.fillText("DANGER LIMIT", width / 2, deadlineY - 10);
+                ctx.font = "bold 26px Arial"; // フォントサイズを戻す
             });
         }
 
