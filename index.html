@@ -98,17 +98,20 @@
             position: absolute;
             bottom: 20px;
             left: 20px;
-            width: 100px;
-            height: 100px;
+            width: 60px;
+            height: 60px;
             background-color: #f1c40f;
             border-radius: 50%;
             border: 4px solid #fff;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 40px;
+            font-size: 24px;
             box-shadow: 0 0 15px #f1c40f;
             transition: transform 0.2s;
+            pointer-events: none;
+            /* スマホで誤タップを防ぐため */
+            z-index: 50;
         }
 
         #electron-speech {
@@ -273,7 +276,10 @@
         <div id="game-over-modal">
             <h1>GAME OVER</h1>
             <p style="font-size: 24px; margin-bottom: 30px;">最終スコア: <span id="final-score">0</span></p>
-            <button class="btn" onclick="restartGame()">リトライ</button>
+            <div style="display: flex; gap: 20px;">
+                <button class="btn" onclick="goToTitle()">タイトルへ</button>
+                <button class="btn" onclick="restartGame(true)">リトライ</button>
+            </div>
         </div>
 
         <div id="title-screen">
@@ -621,8 +627,41 @@
                 }
 
                 sound.playCombine();
+
+                // スコア計算 (まとめ消しボーナス強化、ただし基本点は半減)
+                // 以前: length * 100
+                // 今回: length * 50
+                // トータル = (length * 50) * length (multiplier) = 50 * length^2
+                let points = selectedBodies.length * 50;
+
+                // 結晶格子ボーナス（接触ボーナス）
+                let contactBonus = 0;
+                let connections = 0;
+                for (let i = 0; i < selectedBodies.length; i++) {
+                    for (let j = i + 1; j < selectedBodies.length; j++) {
+                        const idA = selectedBodies[i].id;
+                        const idB = selectedBodies[j].id;
+                        const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
+                        if (activePairs.has(key)) {
+                            connections++;
+                        }
+                    }
+                }
+
+                if (connections > 0) {
+                    contactBonus = connections * 25; // ボーナスも半減
+                    showFlyingText(`結晶ボーナス +${contactBonus}!`, selectedBodies[0].position);
+                }
+
+                // 複雑性ボーナス (乗数)
+                const multiplier = Math.max(1, selectedBodies.length); // length - 1 ではなく length をそのまま乗数にする（二乗効果）
+                const totalAdd = (points + contactBonus) * multiplier;
+                score += totalAdd;
+
+                updateScore();
+                checkTitle();
+
                 successClear();
-            } else {
                 const sign = netCharge > 0 ? '+' : '';
                 showElectronSpeech(`現在の電荷: ${sign}${netCharge}`);
                 sound.playSelect();
@@ -630,41 +669,18 @@
         }
 
         function successClear() {
-            // スコア計算
-            let points = selectedBodies.length * 100;
+            // スコア計算は handleIonClick 側に移動したのでここでは行わない
+            // と言いたいところだが、handleIonClick 側の変更で successClear を呼んでいるので
+            // successClear 内の古いスコア計算を削除する必要がある。
 
-            // 結晶格子ボーナス（接触ボーナス）
-            let contactBonus = 0;
-            let connections = 0;
-            for (let i = 0; i < selectedBodies.length; i++) {
-                for (let j = i + 1; j < selectedBodies.length; j++) {
-                    const idA = selectedBodies[i].id;
-                    const idB = selectedBodies[j].id;
-                    const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
-                    if (activePairs.has(key)) {
-                        connections++;
-                    }
-                }
-            }
-
-            if (connections > 0) {
-                contactBonus = connections * 50;
-                showFlyingText(`結晶ボーナス +${contactBonus}!`, selectedBodies[0].position);
-            }
-
-            // 複雑性ボーナス
-            const multiplier = Math.max(1, selectedBodies.length - 1);
-            const totalAdd = (points + contactBonus) * multiplier;
-            score += totalAdd;
-            updateScore();
-            checkTitle();
+            // エフェクト
+            showElectronSpeech("ナイス結合！✨");
+            jumpElectron();
 
             // 化合物名の生成と表示
             let cations = selectedBodies.filter(b => b.plugin.ionData.type === 'cation');
             let anions = selectedBodies.filter(b => b.plugin.ionData.type === 'anion');
 
-            // シンプルな命名規則: 陰イオン名 + 陽イオン名（例: 塩化 + ナトリウム = 塩化ナトリウム）
-            // 複数種類混ざっている場合は、最初に見つかったものを使う簡易実装（通常は1種類ずつ）
             if (cations.length > 0 && anions.length > 0) {
                 const cationName = cations[0].plugin.ionData.baseName;
                 const anionName = anions[0].plugin.ionData.baseName;
@@ -673,12 +689,7 @@
                 showCompoundName(compoundName);
             }
 
-            // エフェクト
-            showElectronSpeech("ナイス結合！✨");
-            jumpElectron();
-
-            // ボールの削除まで少しだけウェイトを入れる（名前が見えるように）
-            // しかし物理演算上、消さないと次が選べないので、ボールは消して名前をオーバーレイ表示する
+            // ボールの削除
             selectedBodies.forEach(b => {
                 World.remove(engine.world, b);
             });
@@ -789,9 +800,24 @@
             if (spawnTimer) clearTimeout(spawnTimer);
         }
 
-        window.restartGame = function () {
-            location.reload();
+        window.restartGame = function (retry = false) {
+            if (retry) {
+                // リトライ時はパラメータをつけてリロード
+                const url = new URL(window.location.href);
+                url.searchParams.set('retry', '1');
+                window.location.href = url.toString();
+            } else {
+                // 通常リロード
+                location.reload();
+            }
         };
+
+        window.goToTitle = function () {
+            // パラメータを消してリロード（タイトル画面へ）
+            const url = new URL(window.location.href);
+            url.searchParams.delete('retry');
+            window.location.href = url.toString();
+        }
 
         // リサイズ時の処理
         window.addEventListener('resize', () => {
@@ -807,17 +833,36 @@
             const highScore = localStorage.getItem('ion_highscore') || 0;
             document.getElementById('high-score-display').innerText = highScore;
 
+            // URLパラメータチェック (リトライかどうか)
+            const urlParams = new URLSearchParams(window.location.search);
+            const isRetry = urlParams.get('retry') === '1';
+
+            if (isRetry) {
+                // リトライ時はタイトルを非表示にして即スタート
+                document.getElementById('title-screen').style.display = 'none';
+                // AudioContextの開始はユーザーアクションが必要な場合があるが、
+                // リロード直後なのでクリックが必要かもしれない。
+                // ただし、リロード前のクリックが有効な場合もある。
+                // とりあえず開始を試みる
+                setTimeout(() => {
+                    startGameLogic();
+                }, 100);
+            }
+
             // スタートボタン
             document.getElementById('start-btn').addEventListener('click', () => {
                 document.getElementById('title-screen').style.display = 'none';
+                startGameLogic();
+            });
 
+            function startGameLogic() {
                 // Matter.jsチェックと開始
                 try {
                     if (typeof Matter === 'undefined') {
                         throw new Error("Matter.js not loaded");
                     }
-                    // AudioContextの開始（ユーザー操作後）
-                    if (sound.ctx.state === 'suspended') sound.ctx.resume();
+                    // AudioContextの開始
+                    if (sound.ctx.state === 'suspended') sound.ctx.resume().catch(e => console.log("Audio resume waiting for interaction"));
 
                     initGame();
                     setupRenderEvents();
@@ -825,7 +870,7 @@
                     console.error("ゲーム開始エラー:", e);
                     alert("エラー: Matter.js が読み込まれていません。");
                 }
-            });
+            }
         });
 
     </script>
