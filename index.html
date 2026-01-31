@@ -149,7 +149,8 @@
             border-color: transparent transparent transparent white;
         }
 
-        #game-over-modal {
+        #game-over-modal,
+        #help-modal {
             position: absolute;
             top: 0;
             left: 0;
@@ -162,6 +163,41 @@
             align-items: center;
             pointer-events: auto;
             z-index: 100;
+        }
+
+        #help-modal {
+            background: rgba(44, 62, 80, 0.95);
+            z-index: 210;
+            /* タイトルより上 */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            width: 500px;
+            color: white;
+            text-align: left;
+        }
+
+        .modal-content h2 {
+            text-align: center;
+            color: #f1c40f;
+            margin-top: 0;
+        }
+
+        .modal-content ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .modal-content li {
+            margin-bottom: 10px;
+            font-size: 18px;
+            line-height: 1.5;
         }
 
         #game-over-modal h1 {
@@ -306,7 +342,25 @@
             <h1>クリスタル<br>ビルダー</h1>
             <p class="subtitle">イオン結合パズル</p>
             <p style="font-size: 20px; margin-bottom: 30px;">ハイスコア: <span id="high-score-display">0</span></p>
-            <button class="btn" id="start-btn">スタート</button>
+            <div style="display: flex; gap: 20px;">
+                <button class="btn" id="start-btn">スタート</button>
+                <button class="btn" onclick="showHelp()" style="background: #3498db;">遊び方</button>
+            </div>
+        </div>
+
+        <div id="help-modal">
+            <div class="modal-content">
+                <h2>遊び方</h2>
+                <ul>
+                    <li><strong>ルール:</strong> 陽イオン(+)と陰イオン(-)を組み合わせて、合計の電気が「0」になるように消そう！</li>
+                    <li><strong>ボーナス:</strong> 一度にたくさんつなげて消すと、スコアが大幅アップ！（個数の二乗ボーナス）</li>
+                    <li><strong>キャンセル:</strong> 選んだボールをもう一度タップすると、選択をキャンセルできるよ。</li>
+                    <li><strong>注意:</strong> 線を超えて積み上がるとゲームオーバー！</li>
+                </ul>
+                <div style="text-align: center;">
+                    <button class="btn" onclick="hideHelp()">閉じる</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -850,6 +904,14 @@
             const url = new URL(window.location.href);
             url.searchParams.delete('retry');
             window.location.href = url.toString();
+        }
+
+        window.showHelp = function () {
+            document.getElementById('help-modal').style.display = 'flex';
+        }
+
+        window.hideHelp = function () {
+            document.getElementById('help-modal').style.display = 'none';
         }
 
         // リサイズ時の処理
