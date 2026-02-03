@@ -2,15 +2,6 @@
 <html lang="ja">
 
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-D6EN9Q7DVM"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-D6EN9Q7DVM');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>イオン結合パズル：クリスタルビルダー</title>
@@ -32,6 +23,33 @@
     </script>
     <!-- Matter.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+
+    <!-- Firebase SDK (v9 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // --- Firebase設定 (ユーザーがここに値を貼り付ける) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyACKFsg3RK0DR5_ciEmUuH6KPkoo87KrNM",
+            authDomain: "crystal-builder0802.firebaseapp.com",
+            projectId: "crystal-builder0802",
+            storageBucket: "crystal-builder0802.firebasestorage.app",
+            messagingSenderId: "138379163430",
+            appId: "1:138379163430:web:7d7bad6fda98ff721fb3e7"
+        };
+        // --------------------------------------------------
+
+        // Firebase初期化
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            console.log("Firebase Initialized");
+        } catch (e) {
+            console.warn("Firebase Config not found or invalid. Leaderboard disabled.", e);
+        }
+    </script>
     <style>
         body {
             margin: 0;
@@ -319,6 +337,73 @@
             font-size: 24px;
             color: #bdc3c7;
             margin-bottom: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* ランキング用CSS */
+        #ranking-container {
+            width: 80%;
+            max-width: 400px;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .ranking-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 18px;
+        }
+
+        .ranking-row:last-child {
+            border-bottom: none;
+        }
+
+        .rank-num {
+            font-weight: bold;
+            width: 30px;
+            color: #f1c40f;
+        }
+
+        .rank-name {
+            flex-grow: 1;
+            text-align: left;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            margin-right: 10px;
+        }
+
+        .rank-score {
+            font-family: monospace;
+            font-size: 20px;
+        }
+
+        .rank-1 .rank-num {
+            color: #e74c3c;
+            font-size: 1.2em;
+        }
+
+        /* 金（に見立てた赤/特別色） */
+
+        /* 名前入力用CSS */
+        #name-input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .input-field {
+            padding: 10px;
+            font-size: 20px;
+            border-radius: 5px;
+            border: none;
+            text-align: center;
         }
     </style>
 </head>
@@ -348,7 +433,16 @@
         <div id="game-over-modal">
             <h1>GAME OVER</h1>
             <p style="font-size: 24px; margin-bottom: 30px;">最終スコア: <span id="final-score">0</span></p>
-            <div style="display: flex; gap: 20px;">
+
+            <!-- 名前入力エリア（ランクイン時のみ表示） -->
+            <div id="name-input-section" style="display: none;">
+                <p style="color: #f1c40f; font-weight: bold;">ランクインおめでとう！</p>
+                <input type="text" id="player-name-input" class="input-field" placeholder="名前を入力（8文字）" maxlength="8">
+                <button class="btn" onclick="registerRank()" style="background: #e67e22;">登録</button>
+            </div>
+
+            <!-- 通常ボタンエリア -->
+            <div id="gameover-buttons" style="display: flex; gap: 20px;">
                 <button class="btn" onclick="goToTitle()">タイトルへ</button>
                 <button class="btn" onclick="restartGame(true)">リトライ</button>
             </div>
@@ -357,7 +451,16 @@
         <div id="title-screen">
             <h1>クリスタル<br>ビルダー</h1>
             <p class="subtitle">イオン結合パズル</p>
-            <p style="font-size: 20px; margin-bottom: 30px;">ハイスコア: <span id="high-score-display">0</span></p>
+
+            <!-- ランキング表示エリア -->
+            <div id="ranking-container">
+                <div style="text-align:center; color:#bdc3c7; margin-bottom:5px;">- TOP 3 -</div>
+                <div id="ranking-list">
+                    <!-- JSで生成 -->
+                    <div class="ranking-row"><span class="rank-name">Loading...</span></div>
+                </div>
+            </div>
+
             <div style="display: flex; gap: 20px;">
                 <button class="btn" id="start-btn" onclick="initGame('normal')">ノーマル</button>
                 <button class="btn" onclick="initGame('hard')" style="background: #e74c3c;">ハード</button>
@@ -1128,6 +1231,10 @@
 
             document.getElementById('final-score').innerText = score;
             document.getElementById('game-over-modal').style.display = 'flex';
+
+            // ランクイン判定
+            checkRank(score);
+
             if (spawnTimer) clearTimeout(spawnTimer);
         }
 
@@ -1156,6 +1263,89 @@
             document.getElementById('help-modal').style.display = 'flex';
         }
 
+        // --- ランキングロジック (Firestore) ---
+        async function loadRanking() {
+            if (!db) return;
+            const list = document.getElementById('ranking-list');
+            try {
+                const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(3).get();
+                if (snapshot.empty) {
+                    list.innerHTML = '<div class="ranking-row"><span class="rank-name">No Data</span></div>';
+                    return;
+                }
+
+                let html = '';
+                let rank = 1;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const rankClass = rank <= 3 ? `rank-${rank}` : '';
+                    html += `
+                        <div class="ranking-row ${rankClass}">
+                            <span class="rank-num">${rank}</span>
+                            <span class="rank-name">${escapeHtml(data.name)}</span>
+                            <span class="rank-score">${data.score}</span>
+                        </div>`;
+                    rank++;
+                });
+                list.innerHTML = html;
+            } catch (e) {
+                console.error("Error loading ranking:", e);
+                list.innerHTML = '<div class="ranking-row"><span class="rank-name">Error</span></div>';
+            }
+        }
+
+        async function checkRank(score) {
+            if (!db) return;
+            if (score === 0) return; // 0点は登録不可
+
+            try {
+                const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(3).get();
+                // データが3件未満、または3位のスコアより高い場合
+                if (snapshot.size < 3 || score > snapshot.docs[snapshot.size - 1].data().score) {
+                    document.getElementById('name-input-section').style.display = 'flex';
+                }
+            } catch (e) {
+                console.error("Error checking rank:", e);
+            }
+        }
+
+        async function registerRank() {
+            if (!db) return;
+            const nameInput = document.getElementById('player-name-input');
+            const name = nameInput.value.trim() || "名無し";
+
+            try {
+                await db.collection('scores').add({
+                    name: name,
+                    score: score,
+                    title: document.getElementById('title-val').innerText,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("ランキングに登録しました！");
+                document.getElementById('name-input-section').style.display = 'none';
+                loadRanking(); // 再読み込み
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                alert("登録エラーが発生しました");
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function (m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+
+        // 初期化時にランキング読み込み
+        window.addEventListener('load', loadRanking);
+
         window.hideHelp = function () {
             document.getElementById('help-modal').style.display = 'none';
         }
@@ -1170,9 +1360,7 @@
         window.addEventListener('load', () => {
             console.log("スクリプト開始: ウィンドウロード完了");
 
-            // ハイスコア表示
-            const highScore = localStorage.getItem('ion_highscore') || 0;
-            document.getElementById('high-score-display').innerText = highScore;
+            // ranking system replaced high score display
 
             // URLパラメータチェック (リトライかどうか)
             const urlParams = new URLSearchParams(window.location.search);
