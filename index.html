@@ -498,1082 +498,1140 @@
     </div>
 
     <script>
-        let gameMode = 'normal'; // 'normal' or 'hard'
-        let IONS = []; // 現在のモードのイオンリスト
+        (function () {
+            "use strict";
 
-        // 基本イオンリスト
-        const IONS_BASE = [
-            { formula: "Na⁺", charge: 1, radius: 40, color: "#e74c3c", type: "cation", baseName: "ナトリウム", name: "ナトリウムイオン" },
-            { formula: "Mg²⁺", charge: 2, radius: 29, color: "#d35400", type: "cation", baseName: "マグネシウム", name: "マグネシウムイオン" },
-            { formula: "NH₄⁺", charge: 1, radius: 56, color: "#f39c12", type: "cation", baseName: "アンモニウム", name: "アンモニウムイオン" },
-            { formula: "Al³⁺", charge: 3, radius: 32, color: "#e67e22", type: "cation", baseName: "アルミニウム", name: "アルミニウムイオン" },
-            { formula: "Cu²⁺", charge: 2, radius: 36, color: "#c0392b", type: "cation", baseName: "銅(II)", name: "銅(II)イオン" },
-            { formula: "Cl⁻", charge: -1, radius: 72, color: "#3498db", type: "anion", baseName: "塩化", name: "塩化物イオン" },
-            { formula: "SO₄²⁻", charge: -2, radius: 99, color: "#8e44ad", type: "anion", baseName: "硫酸", name: "硫酸イオン" },
-            { formula: "O²⁻", charge: -2, radius: 56, color: "#1abc9c", type: "anion", baseName: "酸化", name: "酸化物イオン" },
-            { formula: "CO₃²⁻", charge: -2, radius: 88, color: "#9b59b6", type: "anion", baseName: "炭酸", name: "炭酸イオン" },
-            { formula: "OH⁻", charge: -1, radius: 64, color: "#2980b9", type: "anion", baseName: "水酸化", name: "水酸化物イオン" }
-        ];
+            let gameMode = 'normal'; // 'normal' or 'hard'
+            let IONS = []; // 現在のモードのイオンリスト
 
-        // ハードモード追加イオン
-        const IONS_HARD_ADD = [
-            { formula: "Ag⁺", charge: 1, radius: 32, color: "#bdc3c7", type: "cation", baseName: "銀", name: "銀イオン" }, // 40*0.8=32
-            { formula: "Ca²⁺", charge: 2, radius: 28, color: "#d35400", type: "cation", baseName: "カルシウム", name: "カルシウムイオン" } // 35*0.8=28
-        ];
+            // 基本イオンリスト
+            const IONS_BASE = [
+                { formula: "Na⁺", charge: 1, radius: 40, color: "#e74c3c", type: "cation", baseName: "ナトリウム", name: "ナトリウムイオン" },
+                { formula: "Mg²⁺", charge: 2, radius: 29, color: "#d35400", type: "cation", baseName: "マグネシウム", name: "マグネシウムイオン" },
+                { formula: "NH₄⁺", charge: 1, radius: 56, color: "#f39c12", type: "cation", baseName: "アンモニウム", name: "アンモニウムイオン" },
+                { formula: "Al³⁺", charge: 3, radius: 32, color: "#e67e22", type: "cation", baseName: "アルミニウム", name: "アルミニウムイオン" },
+                { formula: "Cu²⁺", charge: 2, radius: 36, color: "#c0392b", type: "cation", baseName: "銅(II)", name: "銅(II)イオン" },
+                { formula: "Cl⁻", charge: -1, radius: 72, color: "#3498db", type: "anion", baseName: "塩化", name: "塩化物イオン" },
+                { formula: "SO₄²⁻", charge: -2, radius: 99, color: "#8e44ad", type: "anion", baseName: "硫酸", name: "硫酸イオン" },
+                { formula: "O²⁻", charge: -2, radius: 56, color: "#1abc9c", type: "anion", baseName: "酸化", name: "酸化物イオン" },
+                { formula: "CO₃²⁻", charge: -2, radius: 88, color: "#9b59b6", type: "anion", baseName: "炭酸", name: "炭酸イオン" },
+                { formula: "OH⁻", charge: -1, radius: 64, color: "#2980b9", type: "anion", baseName: "水酸化", name: "水酸化物イオン" }
+            ];
 
-        const TITLES = [
-            { score: 0, title: "見習い錬金術師", interval: 2000, scoreMult: 0.5 },
-            { score: 1000, title: "イオン使い", interval: 1500, scoreMult: 0.8 },
-            { score: 3000, title: "結晶の職人", interval: 1200, scoreMult: 1.0 },
-            { score: 5000, title: "結合マスター", interval: 1000, scoreMult: 1.5 },
-            { score: 10000, title: "塩の王", interval: 800, scoreMult: 2.0 },
-            { score: 20000, title: "賢者の石の所有者", interval: 600, scoreMult: 3.0 },
-            { score: 50000, title: "元素の支配者", interval: 500, scoreMult: 5.0 },
-            { score: 75000, title: "宇宙の設計者", interval: 400, scoreMult: 8.0 },
-            { score: 100000, title: "化学の神", interval: 300, scoreMult: 12.0 },
-            { score: 300000, title: "真理", interval: 200, scoreMult: 20.0 }
-        ];
+            // ハードモード追加イオン
+            const IONS_HARD_ADD = [
+                { formula: "Ag⁺", charge: 1, radius: 32, color: "#bdc3c7", type: "cation", baseName: "銀", name: "銀イオン" }, // 40*0.8=32
+                { formula: "Ca²⁺", charge: 2, radius: 28, color: "#d35400", type: "cation", baseName: "カルシウム", name: "カルシウムイオン" } // 35*0.8=28
+            ];
 
-        // --- Sound Manager (Web Audio API) ---
-        class SoundManager {
-            constructor() {
-                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            const TITLES = [
+                { score: 0, title: "見習い錬金術師", interval: 2000, scoreMult: 0.5 },
+                { score: 1000, title: "イオン使い", interval: 1500, scoreMult: 0.8 },
+                { score: 3000, title: "結晶の職人", interval: 1200, scoreMult: 1.0 },
+                { score: 5000, title: "結合マスター", interval: 1000, scoreMult: 1.5 },
+                { score: 10000, title: "塩の王", interval: 800, scoreMult: 2.0 },
+                { score: 20000, title: "賢者の石の所有者", interval: 600, scoreMult: 3.0 },
+                { score: 50000, title: "元素の支配者", interval: 500, scoreMult: 5.0 },
+                { score: 75000, title: "宇宙の設計者", interval: 400, scoreMult: 8.0 },
+                { score: 100000, title: "化学の神", interval: 300, scoreMult: 12.0 },
+                { score: 300000, title: "真理", interval: 200, scoreMult: 20.0 }
+            ];
 
-            playTone(freq, type, duration, vol = 0.1) {
-                if (this.ctx.state === 'suspended') this.ctx.resume();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + duration);
-            }
-
-            playSelect() {
-                this.playTone(880, 'sine', 0.1, 0.1); // Low ping
-            }
-
-            playCombine() {
-                // Arpeggio
-                setTimeout(() => this.playTone(523.25, 'sine', 0.3, 0.1), 0); // C5
-                setTimeout(() => this.playTone(659.25, 'sine', 0.3, 0.1), 100); // E5
-                setTimeout(() => this.playTone(783.99, 'sine', 0.4, 0.1), 200); // G5
-            }
-
-            playError() {
-                this.playTone(150, 'sawtooth', 0.3, 0.1); // Buzz
-            }
-
-            playGameOver() {
-                this.playTone(300, 'triangle', 1.0, 0.2);
-                setTimeout(() => this.playTone(250, 'triangle', 1.0, 0.2), 300);
-                setTimeout(() => this.playTone(200, 'triangle', 1.5, 0.2), 600);
-            }
-        }
-
-        const sound = new SoundManager();
-
-        // --- Matter.js エイリアス ---
-        // ライブラリのロードを待つ必要があるため、initGame内で定義するか、loadイベント内で定義する
-        let Engine, Render, Runner, World, Bodies, Body, Events, Composite, Mouse, MouseConstraint;
-
-        // --- グローバル状態 ---
-        let engine, render, runner;
-        let score = 0;
-        let selectedBodies = []; // 選択されたボール
-        let nextIonIndex = 0;
-        let isGameOver = false;
-        let activePairs = new Set(); // 接触ボーナス判定用
-        let spawnTimer; // setTimeout用
-        let currentSpawnInterval = 2000; // 現在のスポーン間隔
-        let currentScoreMultiplier = 0.5; // 現在のスコア倍率
-        let scaleFactor = 1; // グローバルスケール係数
-
-        // リサイズ対応
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                // レイアウト更新のためリロード（物理エンジンの再計算が複雑なため）
-                location.reload();
-            }, 300);
-        });
-
-        function calculateDimensions() {
-            const TARGET_AR = 630 / 1050; // ヒエラルキー比率は0.6で維持
-            const BASE_HEIGHT = 1050;  // 基準高さを変更（より広く使えるように）
-
-            let h = window.innerHeight;
-            let w = h * TARGET_AR;
-
-            // 幅が画面からはみ出る場合
-            if (w > window.innerWidth) {
-                w = window.innerWidth;
-                h = w / TARGET_AR;
-            }
-
-            // スケール計算
-            const scale = h / BASE_HEIGHT;
-
-            return { width: w, height: h, scale: scale };
-        }
-
-        function initGame(mode) {
-            console.log("initGame が呼び出されました. Mode:", mode);
-            gameMode = mode || 'normal';
-
-            // イオンリストの構築
-            IONS = [...IONS_BASE];
-            if (gameMode === 'hard') {
-                IONS.push(...IONS_HARD_ADD);
-                document.getElementById('title-val').innerText = "見習い錬金術師 (Hard)";
-            } else {
-                document.getElementById('title-val').innerText = "見習い錬金術師";
-            }
-
-            // UIのリセット
-            document.getElementById('title-screen').style.display = 'none';
-            score = 0;
-            document.getElementById('score-val').innerText = score;
-
-            const container = document.getElementById('game-container');
-            if (!container) {
-                console.error("エラー: game-container が見つかりません！");
-                return;
-            }
-
-            // 既存のゲームループとキャンバスのクリーンアップ
-            if (render) {
-                Render.stop(render);
-                if (render.canvas) {
-                    render.canvas.remove();
+            // --- Sound Manager (Web Audio API) ---
+            class SoundManager {
+                constructor() {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 }
-                render = null;
-            }
-            if (runner) {
-                Runner.stop(runner);
-                runner = null;
-            }
-            if (engine) {
-                World.clear(engine.world);
-                Engine.clear(engine);
-                engine = null;
-            }
 
-            // Matter.js のエイリアス設定
-            Engine = Matter.Engine;
-            Render = Matter.Render;
-            Runner = Matter.Runner;
-            World = Matter.World;
-            Bodies = Matter.Bodies;
-            Body = Matter.Body;
-            Events = Matter.Events;
-            Composite = Matter.Composite;
-            Mouse = Matter.Mouse;
-            MouseConstraint = Matter.MouseConstraint;
-
-            engine = Engine.create();
-            engine.world.gravity.y = 1; // 重力はスケールに関わらず1（見た目の速度は相対的に変わるが、ゲーム性は維持）
-
-            // 新しいレスポンシブロジック
-            const dims = calculateDimensions();
-            const width = dims.width;
-            const height = dims.height;
-            scaleFactor = dims.scale;
-
-            console.log(`Dims: ${width}x${height}, Scale: ${scaleFactor}`);
-
-
-
-            render = Render.create({
-                element: container,
-                engine: engine,
-                options: {
-                    width: width,
-                    height: height,
-                    wireframes: false,
-                    background: '#34495e',
-                    pixelRatio: window.devicePixelRatio
+                playTone(freq, type, duration, vol = 0.1) {
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
                 }
+
+                playSelect() {
+                    this.playTone(880, 'sine', 0.1, 0.1); // Low ping
+                }
+
+                playCombine() {
+                    // Arpeggio
+                    setTimeout(() => this.playTone(523.25, 'sine', 0.3, 0.1), 0); // C5
+                    setTimeout(() => this.playTone(659.25, 'sine', 0.3, 0.1), 100); // E5
+                    setTimeout(() => this.playTone(783.99, 'sine', 0.4, 0.1), 200); // G5
+                }
+
+                playError() {
+                    this.playTone(150, 'sawtooth', 0.3, 0.1); // Buzz
+                }
+
+                playGameOver() {
+                    this.playTone(300, 'triangle', 1.0, 0.2);
+                    setTimeout(() => this.playTone(250, 'triangle', 1.0, 0.2), 300);
+                    setTimeout(() => this.playTone(200, 'triangle', 1.5, 0.2), 600);
+                }
+            }
+
+            const sound = new SoundManager();
+
+            // --- Matter.js エイリアス ---
+            // ライブラリのロードを待つ必要があるため、initGame内で定義するか、loadイベント内で定義する
+            let Engine, Render, Runner, World, Bodies, Body, Events, Composite, Mouse, MouseConstraint;
+
+            // --- グローバル状態 ---
+            let engine, render, runner;
+            let score = 0;
+            let selectedBodies = []; // 選択されたボール
+            let nextIonIndex = 0;
+            let isGameOver = false;
+            let activePairs = new Set(); // 接触ボーナス判定用
+            let spawnTimer; // setTimeout用
+            let currentSpawnInterval = 2000; // 現在のスポーン間隔
+            let currentScoreMultiplier = 0.5; // 現在のスコア倍率
+            let scaleFactor = 1; // グローバルスケール係数
+
+            // リサイズ対応
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    // レイアウト更新のためリロード（物理エンジンの再計算が複雑なため）
+                    location.reload();
+                }, 300);
             });
 
-            // 壁の追加
-            const wallThick = 100 * scaleFactor; // 壁の厚みもスケール
-            const wallOptions = { isStatic: true, render: { fillStyle: '#95a5a6' } };
+            function calculateDimensions() {
+                const TARGET_AR = 630 / 1050; // ヒエラルキー比率は0.6で維持
+                const BASE_HEIGHT = 1050;  // 基準高さを変更（より広く使えるように）
 
-            // 床
-            const ground = Bodies.rectangle(width / 2, height + (wallThick / 2), width * 3, wallThick, wallOptions);
-            // 左壁
-            const leftWall = Bodies.rectangle(0 - (wallThick / 2), height / 2, wallThick, height * 2, wallOptions);
-            // 右壁
-            const rightWall = Bodies.rectangle(width + (wallThick / 2), height / 2, wallThick, height * 2, wallOptions);
+                let h = window.innerHeight;
+                let w = h * TARGET_AR;
 
-            World.add(engine.world, [ground, leftWall, rightWall]);
-
-            World.add(engine.world, [ground, leftWall, rightWall]);
-
-            // タッチ・マウスクリック処理 (Pointer Eventsを使用)
-            // Matter.jsのMouseConstraintはWindowsタブレット等でタッチ反応が悪い場合があるため
-            // ネイティブのPointer Eventで制御する
-            render.canvas.addEventListener('pointerdown', function (event) {
-                if (isGameOver) return;
-
-                // 座標変換 (Canvasの表示サイズと論理サイズの比率を考慮)
-                const rect = render.canvas.getBoundingClientRect();
-                const scaleX = render.options.width / rect.width;
-                const scaleY = render.options.height / rect.height;
-                const x = (event.clientX - rect.left) * scaleX;
-                const y = (event.clientY - rect.top) * scaleY;
-
-                const bodies = Composite.allBodies(engine.world);
-                const clickedBodies = Matter.Query.point(bodies, { x: x, y: y });
-
-                let isClicked = false;
-                for (let b of clickedBodies) {
-                    if (b.label === 'crystal') {
-                        b.hp--;
-                        sound.playError(); // 硬い音が良いがとりあえずerror音を代用
-
-                        // パーティクル演出（簡易）
-                        createParticles(x, y, 3, "#7f8c8d");
-
-                        if (b.hp <= 0) {
-                            World.remove(engine.world, b);
-                            sound.playCombine(); // 破壊音
-                            score += 500; // 破壊ボーナス
-                            createParticles(x, y, 10, "#7f8c8d");
-                            updateScore();
-                        }
-                        isClicked = true;
-                        break; // 結晶処理したら終了
-                    }
-                    if (b.label && b.label.startsWith('ion')) {
-                        handleIonClick(b);
-                        isClicked = true;
-                        break;
-                    }
-                }
-            });
-
-            // 衝突イベント（ボーナス判定用）
-            Events.on(engine, 'collisionStart', function (event) {
-                const pairs = event.pairs;
-                for (let i = 0; i < pairs.length; i++) {
-                    const pair = pairs[i];
-                    const idA = pair.bodyA.id;
-                    const idB = pair.bodyB.id;
-                    const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
-                    activePairs.add(key);
-                }
-            });
-
-            Events.on(engine, 'collisionEnd', function (event) {
-                const pairs = event.pairs;
-                for (let i = 0; i < pairs.length; i++) {
-                    const pair = pairs[i];
-                    const idA = pair.bodyA.id;
-                    const idB = pair.bodyB.id;
-                    const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
-                    activePairs.delete(key);
-                }
-            });
-
-            // ゲームオーバー判定と更新ループ
-            Events.on(engine, 'beforeUpdate', function () {
-                if (isGameOver) return;
-
-                const deadlineY = height * 0.2;
-                const bodies = Composite.allBodies(engine.world);
-                for (let b of bodies) {
-                    // 修正: 画面外（生成直後 z < 0）のボールは判定から除外する
-                    if ((b.label.startsWith('ion') || b.label === 'crystal') && b.speed < 0.5 && b.position.y > 0 && b.position.y < deadlineY) {
-                        triggerGameOver();
-                        break;
-                    }
-                }
-            });
-
-            Render.run(render);
-            runner = Runner.run(Runner.create(), engine);
-
-            // スポーン開始
-            pickNextIon();
-            scheduleNextSpawn();
-            setupRenderEvents(); // Renderイベントをここで設定
-        }
-
-        function scheduleNextSpawn() {
-            if (isGameOver) return;
-            if (spawnTimer) clearTimeout(spawnTimer);
-            spawnTimer = setTimeout(() => {
-                spawnIon();
-                scheduleNextSpawn();
-            }, currentSpawnInterval);
-        }
-
-        function pickNextIon() {
-            console.log("次のイオンを選択中");
-            nextIonIndex = Math.floor(Math.random() * IONS.length);
-            updateNextIonDisplay();
-        }
-
-        function updateNextIonDisplay() {
-            if (!IONS || IONS.length === 0) return;
-            const ion = IONS[nextIonIndex];
-            const nextDisplay = document.getElementById('next-ion-name');
-            if (nextDisplay) {
-                nextDisplay.innerText = ion.formula;
-                nextDisplay.style.color = ion.color;
-            } else {
-                console.error("エラー: next-ion-name 要素が見つかりません");
-            }
-        }
-
-        function spawnIon() {
-            if (isGameOver) return;
-            console.log("イオンを生成中...");
-
-            const ionData = IONS[nextIonIndex];
-            const width = render.options.width;
-
-            // スポーン範囲修正 (スケール対応)
-            const margin = 100 * scaleFactor;
-            // width - margin*2 の範囲でランダム
-            // ただし幅が狭すぎる場合のガード
-            const spawnWidth = Math.max(10, width - margin * 2);
-            const x = Math.random() * spawnWidth + margin;
-
-            const radius = ionData.radius * scaleFactor;
-
-            const body = Bodies.circle(x, -radius * 2, radius, {
-                restitution: 0.5,
-                friction: 0.05,
-                label: `ion-${ionData.formula}`,
-                render: {
-                    fillStyle: ionData.color,
-                    strokeStyle: 'white',
-                    lineWidth: 2
-                },
-                plugin: {
-                    ionData: ionData
-                }
-            });
-
-            Body.setVelocity(body, { x: (Math.random() - 0.5) * 2, y: 0 });
-            World.add(engine.world, body);
-
-            pickNextIon();
-        }
-
-        // ボール上の文字描写と選択ハイライトの描画
-        // Events.on(render, 'afterRender', ...) は Render オブジェクト生成後に実行する必要がありますが
-        // initGame内で定義されている render を参照するため、このイベントハンドラも initGame 内に移動するか
-        // もしくはグローバルの render が設定された後に呼び出すようにします。
-        // ここでは initGame 実行後にイベント登録する形に修正します。
-
-        // 修正: initGameの中で render が作られた後に Events.on を設定するのが最も安全です。
-        // そのため、initGame 関数内に移動させますが、文字数の関係で一旦ここ（グローバルスコープ）に関数を定義し、initGameから呼び出します。
-
-        function setupRenderEvents() {
-            Events.on(render, 'afterRender', function () {
-                const ctx = render.context;
-                const bodies = Composite.allBodies(engine.world);
-
-                const scaledFontSize = Math.round(26 * scaleFactor);
-                ctx.font = `bold ${scaledFontSize}px Arial`;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-
-                for (let b of bodies) {
-                    if (b.label.startsWith('ion')) {
-                        // 化学式を描画
-                        ctx.fillStyle = "white";
-                        ctx.fillText(b.plugin.ionData.formula, b.position.x, b.position.y);
-
-                        // 選択時のハイライト描画
-                        if (selectedBodies.includes(b)) {
-                            ctx.beginPath();
-                            ctx.arc(b.position.x, b.position.y, b.circleRadius + 5, 0, 2 * Math.PI);
-                            ctx.strokeStyle = "#f1c40f";
-                            ctx.lineWidth = 4;
-                            ctx.stroke();
-                        }
-                    }
+                // 幅が画面からはみ出る場合
+                if (w > window.innerWidth) {
+                    w = window.innerWidth;
+                    h = w / TARGET_AR;
                 }
 
-                // ゲームオーバーラインの描画
-                const width = render.options.width;
-                const deadlineY = render.options.height * 0.2;
+                // スケール計算
+                const scale = h / BASE_HEIGHT;
 
-                // 危険エリアの背景（薄い赤）
-                ctx.fillStyle = "rgba(255, 0, 0, 0.05)";
-                ctx.fillRect(0, 0, width, deadlineY);
-
-                // ライン
-                ctx.beginPath();
-                ctx.moveTo(0, deadlineY);
-                ctx.lineTo(width, deadlineY);
-                ctx.strokeStyle = "rgba(255, 0, 0, 0.8)"; // 濃い赤
-                ctx.lineWidth = 4; // 太く
-                ctx.setLineDash([15, 10]); // 点線
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.lineWidth = 1; // 戻す
-
-                // 警告テキスト
-                ctx.font = "bold 20px Arial";
-                ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
-                ctx.fillText("DANGER LIMIT", width / 2, deadlineY - 10);
-
-                // 結晶ブロックの描画
-                ctx.font = "bold 20px Arial";
-                for (let b of bodies) {
-                    if (b.label === 'crystal') {
-                        // 実際には頂点を使ったほうが正確だが、四角形なので
-                        ctx.beginPath();
-                        ctx.moveTo(b.vertices[0].x, b.vertices[0].y);
-                        for (let j = 1; j < b.vertices.length; j++) ctx.lineTo(b.vertices[j].x, b.vertices[j].y);
-                        ctx.closePath();
-                        ctx.fillStyle = "#7f8c8d"; // 結晶の色
-                        ctx.fill();
-                        ctx.strokeStyle = "#2c3e50"; // 枠線
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-
-                        // HP表示
-                        ctx.fillStyle = "white";
-                        ctx.fillText(b.hp, b.position.x, b.position.y);
-                    }
-                }
-
-                ctx.font = "bold 26px Arial"; // フォントサイズを戻す
-            });
-        }
-
-
-        // インタラクション
-        function handleIonClick(body) {
-            // すでに選択済みなら選択解除
-            const idx = selectedBodies.indexOf(body);
-            if (idx !== -1) {
-                selectedBodies.splice(idx, 1);
-                return;
+                return { width: w, height: h, scale: scale };
             }
 
-            const ionInfo = body.plugin.ionData;
+            function initGame(mode) {
+                console.log("initGame が呼び出されました. Mode:", mode);
+                gameMode = mode || 'normal';
 
-            // 制限緩和: 同符号でも選択可能にするため、ここでの極性チェックは削除
-            selectedBodies.push(body);
+                // イオンリストの構築
+                IONS = [...IONS_BASE];
+                if (gameMode === 'hard') {
+                    IONS.push(...IONS_HARD_ADD);
+                    document.getElementById('title-val').innerText = "見習い錬金術師 (Hard)";
+                } else {
+                    document.getElementById('title-val').innerText = "見習い錬金術師";
+                }
 
-            // 正味電荷の計算
-            let netCharge = 0;
-            selectedBodies.forEach(b => netCharge += b.plugin.ionData.charge);
+                // UIのリセット
+                document.getElementById('title-screen').style.display = 'none';
+                score = 0;
+                document.getElementById('score-val').innerText = score;
 
-            if (netCharge === 0) {
-                // 厳密な結合チェック: 陽イオン・陰イオンはそれぞれ1種類でなければならない
-                const cations = selectedBodies.filter(b => b.plugin.ionData.type === 'cation');
-                const anions = selectedBodies.filter(b => b.plugin.ionData.type === 'anion');
-
-                const cationTypes = new Set(cations.map(b => b.plugin.ionData.formula));
-                const anionTypes = new Set(anions.map(b => b.plugin.ionData.formula));
-
-                if (cationTypes.size > 1 || anionTypes.size > 1) {
-                    showElectronSpeech("種類が混ざってるよ！😖");
-                    shakeElectron();
-                    sound.playError();
+                const container = document.getElementById('game-container');
+                if (!container) {
+                    console.error("エラー: game-container が見つかりません！");
                     return;
                 }
 
-                // 化合物名の生成
-                let compoundName = "";
-                if (cations.length > 0 && anions.length > 0) {
-                    const cationName = cations[0].plugin.ionData.baseName;
-                    const anionName = anions[0].plugin.ionData.baseName;
-                    compoundName = anionName + cationName;
+                // 既存のゲームループとキャンバスのクリーンアップ
+                if (render) {
+                    Render.stop(render);
+                    if (render.canvas) {
+                        render.canvas.remove();
+                    }
+                    render = null;
+                }
+                if (runner) {
+                    Runner.stop(runner);
+                    runner = null;
+                }
+                if (engine) {
+                    World.clear(engine.world);
+                    Engine.clear(engine);
+                    engine = null;
                 }
 
-                // 沈殿判定 (Hardモードのみ)
-                let isPrecipitate = false;
-                if (gameMode === 'hard' && cations.length > 0 && anions.length > 0) {
-                    const cationFormula = cations[0].plugin.ionData.formula; // 代表イオンで判定
-                    const anionFormula = anions[0].plugin.ionData.formula;
+                // Matter.js のエイリアス設定
+                Engine = Matter.Engine;
+                Render = Matter.Render;
+                Runner = Matter.Runner;
+                World = Matter.World;
+                Bodies = Matter.Bodies;
+                Body = Matter.Body;
+                Events = Matter.Events;
+                Composite = Matter.Composite;
+                Mouse = Matter.Mouse;
+                MouseConstraint = Matter.MouseConstraint;
 
-                    // 沈殿判定ロジック
-                    // Na+, NH4+: 常に溶解 (沈殿なし)
-                    // Ag+: Cl, SO4, O, CO3, OH すべて沈殿 (AgNO3などは無いので)
-                    // Ca2+: Cl以外は沈殿 (CaSO4, CaO, CaCO3, Ca(OH)2)
-                    // Cu2+, Mg2+, Al3+: Cl, SO4以外は沈殿 (酸化物, 炭酸塩, 水酸化物)
+                engine = Engine.create();
+                engine.world.gravity.y = 1; // 重力はスケールに関わらず1（見た目の速度は相対的に変わるが、ゲーム性は維持）
 
-                    if (cationFormula === "Na⁺" || cationFormula === "NH₄⁺") {
-                        isPrecipitate = false;
-                    } else if (cationFormula === "Ag⁺") {
-                        isPrecipitate = true; // 今回の陰イオンリストなら全て沈殿
-                    } else if (cationFormula === "Ca²⁺") {
-                        isPrecipitate = (anionFormula !== "Cl⁻");
-                    } else if (["Cu²⁺", "Mg²⁺", "Al³⁺"].includes(cationFormula)) {
-                        // 塩化物、硫酸塩は可溶。それ以外(酸化物, 炭酸塩, 水酸化物)は沈殿
-                        if (anionFormula === "Cl⁻" || anionFormula === "SO₄²⁻") {
-                            isPrecipitate = false;
-                        } else {
-                            isPrecipitate = true;
+                // 新しいレスポンシブロジック
+                const dims = calculateDimensions();
+                const width = dims.width;
+                const height = dims.height;
+                scaleFactor = dims.scale;
+
+                console.log(`Dims: ${width}x${height}, Scale: ${scaleFactor}`);
+
+
+
+                render = Render.create({
+                    element: container,
+                    engine: engine,
+                    options: {
+                        width: width,
+                        height: height,
+                        wireframes: false,
+                        background: '#34495e',
+                        pixelRatio: window.devicePixelRatio
+                    }
+                });
+
+                // 壁の追加
+                const wallThick = 100 * scaleFactor; // 壁の厚みもスケール
+                const wallOptions = { isStatic: true, render: { fillStyle: '#95a5a6' } };
+
+                // 床
+                const ground = Bodies.rectangle(width / 2, height + (wallThick / 2), width * 3, wallThick, wallOptions);
+                // 左壁
+                const leftWall = Bodies.rectangle(0 - (wallThick / 2), height / 2, wallThick, height * 2, wallOptions);
+                // 右壁
+                const rightWall = Bodies.rectangle(width + (wallThick / 2), height / 2, wallThick, height * 2, wallOptions);
+
+                World.add(engine.world, [ground, leftWall, rightWall]);
+
+                World.add(engine.world, [ground, leftWall, rightWall]);
+
+                // タッチ・マウスクリック処理 (Pointer Eventsを使用)
+                // Matter.jsのMouseConstraintはWindowsタブレット等でタッチ反応が悪い場合があるため
+                // ネイティブのPointer Eventで制御する
+                render.canvas.addEventListener('pointerdown', function (event) {
+                    if (isGameOver) return;
+
+                    // 座標変換 (Canvasの表示サイズと論理サイズの比率を考慮)
+                    const rect = render.canvas.getBoundingClientRect();
+                    const scaleX = render.options.width / rect.width;
+                    const scaleY = render.options.height / rect.height;
+                    const x = (event.clientX - rect.left) * scaleX;
+                    const y = (event.clientY - rect.top) * scaleY;
+
+                    const bodies = Composite.allBodies(engine.world);
+                    const clickedBodies = Matter.Query.point(bodies, { x: x, y: y });
+
+                    let isClicked = false;
+                    for (let b of clickedBodies) {
+                        if (b.label === 'crystal') {
+                            b.hp--;
+                            sound.playError(); // 硬い音が良いがとりあえずerror音を代用
+
+                            // パーティクル演出（簡易）
+                            createParticles(x, y, 3, "#7f8c8d");
+
+                            if (b.hp <= 0) {
+                                World.remove(engine.world, b);
+                                sound.playCombine(); // 破壊音
+                                score += 500; // 破壊ボーナス
+                                createParticles(x, y, 10, "#7f8c8d");
+                                updateScore();
+                            }
+                            isClicked = true;
+                            break; // 結晶処理したら終了
+                        }
+                        if (b.label && b.label.startsWith('ion')) {
+                            handleIonClick(b);
+                            isClicked = true;
+                            break;
                         }
                     }
-                }
+                });
 
-                if (isPrecipitate) {
-                    // 沈殿生成（結晶化）
-                    const x = selectedBodies.reduce((sum, b) => sum + b.position.x, 0) / selectedBodies.length;
-                    const y = selectedBodies.reduce((sum, b) => sum + b.position.y, 0) / selectedBodies.length;
+                // 衝突イベント（ボーナス判定用）
+                Events.on(engine, 'collisionStart', function (event) {
+                    const pairs = event.pairs;
+                    for (let i = 0; i < pairs.length; i++) {
+                        const pair = pairs[i];
+                        const idA = pair.bodyA.id;
+                        const idB = pair.bodyB.id;
+                        const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
+                        activePairs.add(key);
+                    }
+                });
 
-                    // 選択されたイオンの半径の合計に基づいて結晶のサイズを決定
-                    let totalRadius = selectedBodies.reduce((sum, b) => sum + b.circleRadius, 0);
-                    // サイズを1.5倍に拡大 (req: 今の1.5倍)
-                    // 元: totalRadius * 0.8 -> 新: totalRadius * 0.8 * 1.5 = totalRadius * 1.2
-                    const size = totalRadius * 1.2;
+                Events.on(engine, 'collisionEnd', function (event) {
+                    const pairs = event.pairs;
+                    for (let i = 0; i < pairs.length; i++) {
+                        const pair = pairs[i];
+                        const idA = pair.bodyA.id;
+                        const idB = pair.bodyB.id;
+                        const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
+                        activePairs.delete(key);
+                    }
+                });
 
-                    const crystal = Bodies.rectangle(x, y, size, size, {
-                        label: 'crystal',
-                        restitution: 0.2,
-                        friction: 0.8,
-                        density: 0.05, // 重くする
-                        render: {
-                            fillStyle: '#7f8c8d', // 結晶の色
-                            strokeStyle: '#2c3e50',
-                            lineWidth: 2
+                // ゲームオーバー判定と更新ループ
+                Events.on(engine, 'beforeUpdate', function () {
+                    if (isGameOver) return;
+
+                    const deadlineY = height * 0.2;
+                    const bodies = Composite.allBodies(engine.world);
+                    for (let b of bodies) {
+                        // 修正: 画面外（生成直後 z < 0）のボールは判定から除外する
+                        if ((b.label.startsWith('ion') || b.label === 'crystal') && b.speed < 0.5 && b.position.y > 0 && b.position.y < deadlineY) {
+                            triggerGameOver();
+                            break;
                         }
-                    });
-                    crystal.hp = 10;
-                    crystal.maxHp = 10;
+                    }
+                });
 
-                    World.add(engine.world, crystal);
+                Render.run(render);
+                runner = Runner.run(Runner.create(), engine);
 
-                    // 元のイオンを削除
-                    selectedBodies.forEach(b => {
-                        World.remove(engine.world, b);
-                    });
+                // スポーン開始
+                pickNextIon();
+                scheduleNextSpawn();
+                setupRenderEvents(); // Renderイベントをここで設定
+            }
 
-                    sound.playError(); // 重厚感のある音の代わりにerror音を代用
-                    showCompoundName(compoundName + " (沈殿!)");
+            function scheduleNextSpawn() {
+                if (isGameOver) return;
+                if (spawnTimer) clearTimeout(spawnTimer);
+                spawnTimer = setTimeout(() => {
+                    spawnIon();
+                    scheduleNextSpawn();
+                }, currentSpawnInterval);
+            }
+
+            function pickNextIon() {
+                console.log("次のイオンを選択中");
+                nextIonIndex = Math.floor(Math.random() * IONS.length);
+                updateNextIonDisplay();
+            }
+
+            function updateNextIonDisplay() {
+                if (!IONS || IONS.length === 0) return;
+                const ion = IONS[nextIonIndex];
+                const nextDisplay = document.getElementById('next-ion-name');
+                if (nextDisplay) {
+                    nextDisplay.innerText = ion.formula;
+                    nextDisplay.style.color = ion.color;
                 } else {
-                    sound.playCombine();
+                    console.error("エラー: next-ion-name 要素が見つかりません");
+                }
+            }
 
-                    // スコア計算 (まとめ消しボーナス強化、ただし基本点は半減)
-                    // トータル = (length * 50) * length (multiplier) = 50 * length^2
-                    let points = selectedBodies.length * 50;
+            function spawnIon() {
+                if (isGameOver) return;
+                console.log("イオンを生成中...");
 
-                    // 結晶格子ボーナス（接触ボーナス）
-                    let contactBonus = 0;
-                    let connections = 0;
-                    for (let i = 0; i < selectedBodies.length; i++) {
-                        for (let j = i + 1; j < selectedBodies.length; j++) {
-                            const idA = selectedBodies[i].id;
-                            const idB = selectedBodies[j].id;
-                            const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
-                            if (activePairs.has(key)) {
-                                connections++;
+                const ionData = IONS[nextIonIndex];
+                const width = render.options.width;
+
+                // スポーン範囲修正 (スケール対応)
+                const margin = 100 * scaleFactor;
+                // width - margin*2 の範囲でランダム
+                // ただし幅が狭すぎる場合のガード
+                const spawnWidth = Math.max(10, width - margin * 2);
+                const x = Math.random() * spawnWidth + margin;
+
+                const radius = ionData.radius * scaleFactor;
+
+                const body = Bodies.circle(x, -radius * 2, radius, {
+                    restitution: 0.5,
+                    friction: 0.05,
+                    label: `ion-${ionData.formula}`,
+                    render: {
+                        fillStyle: ionData.color,
+                        strokeStyle: 'white',
+                        lineWidth: 2
+                    },
+                    plugin: {
+                        ionData: ionData
+                    }
+                });
+
+                Body.setVelocity(body, { x: (Math.random() - 0.5) * 2, y: 0 });
+                World.add(engine.world, body);
+
+                pickNextIon();
+            }
+
+            // ボール上の文字描写と選択ハイライトの描画
+            // Events.on(render, 'afterRender', ...) は Render オブジェクト生成後に実行する必要がありますが
+            // initGame内で定義されている render を参照するため、このイベントハンドラも initGame 内に移動するか
+            // もしくはグローバルの render が設定された後に呼び出すようにします。
+            // ここでは initGame 実行後にイベント登録する形に修正します。
+
+            // 修正: initGameの中で render が作られた後に Events.on を設定するのが最も安全です。
+            // そのため、initGame 関数内に移動させますが、文字数の関係で一旦ここ（グローバルスコープ）に関数を定義し、initGameから呼び出します。
+
+            function setupRenderEvents() {
+                Events.on(render, 'afterRender', function () {
+                    const ctx = render.context;
+                    const bodies = Composite.allBodies(engine.world);
+
+                    const scaledFontSize = Math.round(26 * scaleFactor);
+                    ctx.font = `bold ${scaledFontSize}px Arial`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+
+                    for (let b of bodies) {
+                        if (b.label.startsWith('ion')) {
+                            // 化学式を描画
+                            ctx.fillStyle = "white";
+                            ctx.fillText(b.plugin.ionData.formula, b.position.x, b.position.y);
+
+                            // 選択時のハイライト描画
+                            if (selectedBodies.includes(b)) {
+                                ctx.beginPath();
+                                ctx.arc(b.position.x, b.position.y, b.circleRadius + 5, 0, 2 * Math.PI);
+                                ctx.strokeStyle = "#f1c40f";
+                                ctx.lineWidth = 4;
+                                ctx.stroke();
                             }
                         }
                     }
 
-                    if (connections > 0) {
-                        contactBonus = connections * 25; // ボーナスも半減
-                        showFlyingText(`結晶ボーナス +${contactBonus}!`, selectedBodies[0].position);
+                    // ゲームオーバーラインの描画
+                    const width = render.options.width;
+                    const deadlineY = render.options.height * 0.2;
+
+                    // 危険エリアの背景（薄い赤）
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.05)";
+                    ctx.fillRect(0, 0, width, deadlineY);
+
+                    // ライン
+                    ctx.beginPath();
+                    ctx.moveTo(0, deadlineY);
+                    ctx.lineTo(width, deadlineY);
+                    ctx.strokeStyle = "rgba(255, 0, 0, 0.8)"; // 濃い赤
+                    ctx.lineWidth = 4; // 太く
+                    ctx.setLineDash([15, 10]); // 点線
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.lineWidth = 1; // 戻す
+
+                    // 警告テキスト
+                    ctx.font = "bold 20px Arial";
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
+                    ctx.fillText("DANGER LIMIT", width / 2, deadlineY - 10);
+
+                    // 結晶ブロックの描画
+                    ctx.font = "bold 20px Arial";
+                    for (let b of bodies) {
+                        if (b.label === 'crystal') {
+                            // 実際には頂点を使ったほうが正確だが、四角形なので
+                            ctx.beginPath();
+                            ctx.moveTo(b.vertices[0].x, b.vertices[0].y);
+                            for (let j = 1; j < b.vertices.length; j++) ctx.lineTo(b.vertices[j].x, b.vertices[j].y);
+                            ctx.closePath();
+                            ctx.fillStyle = "#7f8c8d"; // 結晶の色
+                            ctx.fill();
+                            ctx.strokeStyle = "#2c3e50"; // 枠線
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+
+                            // HP表示
+                            ctx.fillStyle = "white";
+                            ctx.fillText(b.hp, b.position.x, b.position.y);
+                        }
                     }
 
-                    // 複雑性ボーナス (乗数)
-                    const multiplier = Math.max(1, selectedBodies.length); // length - 1 ではなく length をそのまま乗数にする（二乗効果）
-                    const baseTotal = (points + contactBonus) * multiplier;
-
-                    // レベル（称号）によるスコア倍率適用
-                    const totalAdd = Math.floor(baseTotal * currentScoreMultiplier);
-
-                    score += totalAdd;
-
-                    // ボールの削除
-                    selectedBodies.forEach(b => {
-                        World.remove(engine.world, b);
-                    });
-
-                    showCompoundName(compoundName);
-                }
-
-                updateScore();
-                checkTitle();
-                successClear(); // エフェクトと電子くんの処理
-                const sign = netCharge > 0 ? '+' : '';
-                showElectronSpeech(`現在の電荷: ${sign}${netCharge}`);
-                sound.playSelect();
-
-                selectedBodies = []; // 選択解除
-            }
-        }
-
-        function successClear() {
-            // スコア計算は handleIonClick 側に移動したのでここでは行わない
-            // と言いたいところだが、handleIonClick 側の変更で successClear を呼んでいるので
-            // successClear 内の古いスコア計算を削除する必要がある。
-
-            // エフェクト
-            showElectronSpeech("ナイス結合！✨");
-            jumpElectron();
-        }
-
-        function showCompoundName(name) {
-            const el = document.getElementById('compound-name-display');
-            // スマホ画面に収まるよう、「生成！」の前で改行を入れる
-            el.innerHTML = name + "<span style='font-size:0.8em; display:block; margin-top:5px;'>生成！</span>";
-            el.style.opacity = '1';
-            el.style.transform = 'translate(-50%, -50%) scale(1.2)';
-
-            setTimeout(() => {
-                el.style.opacity = '0';
-                el.style.transform = 'translate(-50%, -50%) scale(0.8)';
-            }, 1000);
-        }
-
-        function updateScore() {
-            const scoreEl = document.getElementById('score-val');
-            scoreEl.innerText = Math.floor(score);
-            scoreEl.style.transform = "scale(1.5)";
-            setTimeout(() => scoreEl.style.transform = "scale(1)", 200);
-        }
-
-        function checkTitle() {
-            const titleEl = document.getElementById('title-val');
-            const speedEl = document.getElementById('speed-val');
-            let currentTitle = TITLES[0].title;
-            let newInterval = TITLES[0].interval;
-            let level = 1;
-
-            TITLES.forEach((t, i) => {
-                if (score >= t.score) {
-                    currentTitle = t.title;
-                    newInterval = t.interval;
-                    currentScoreMultiplier = t.scoreMult;
-                    level = i + 1;
-                }
-            });
-
-            // 難易度更新（スピードアップ）
-            if (currentSpawnInterval !== newInterval) {
-                currentSpawnInterval = newInterval;
-                showFlyingText("スピードアップ！⚡️", { x: window.innerWidth / 2, y: window.innerHeight / 2 - 50 });
+                    ctx.font = "bold 26px Arial"; // フォントサイズを戻す
+                });
             }
 
-            // スピード表示更新
-            speedEl.innerText = "Lv." + level;
 
-            let displayTitle = currentTitle;
-            if (gameMode === 'hard') {
-                displayTitle += " (Hard)";
-            }
-
-            if (titleEl.innerText !== displayTitle) {
-                titleEl.innerText = displayTitle;
-                showFlyingText("称号アップ！", { x: window.innerWidth / 2, y: window.innerHeight / 2 });
-            }
-        }
-
-        // UIヘルパー関数
-        function showElectronSpeech(text) {
-            const el = document.getElementById('electron-speech');
-            el.innerText = text;
-            el.style.opacity = 1;
-
-            if (el.hideTimeout) clearTimeout(el.hideTimeout);
-            el.hideTimeout = setTimeout(() => {
-                el.style.opacity = 0;
-            }, 2000);
-        }
-
-        function shakeElectron() {
-            const el = document.getElementById('electron-kun');
-            el.style.transform = "translateX(5px)";
-            setTimeout(() => el.style.transform = "translateX(-5px)", 50);
-            setTimeout(() => el.style.transform = "translateX(5px)", 100);
-            setTimeout(() => el.style.transform = "translateX(0)", 150);
-        }
-
-        function jumpElectron() {
-            const el = document.getElementById('electron-kun');
-            el.style.transform = "translateY(-20px)";
-            setTimeout(() => el.style.transform = "translateY(0)", 200);
-        }
-
-        function createParticles(x, y, count, color) {
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.backgroundColor = color;
-                particle.style.left = `${x + (Math.random() - 0.5) * 10}px`;
-                particle.style.top = `${y + (Math.random() - 0.5) * 10}px`;
-                document.body.appendChild(particle);
-
-                const angle = Math.random() * Math.PI * 2;
-                const distance = (Math.random() * 50 + 20) * scaleFactor;
-                const translateX = Math.cos(angle) * distance;
-                const translateY = Math.sin(angle) * distance;
-
-                particle.animate([
-                    { transform: `translate(0, 0) scale(${scaleFactor})`, opacity: 1 },
-                    { transform: `translate(${translateX}px, ${translateY}px) scale(0)`, opacity: 0 }
-                ], {
-                    duration: Math.random() * 500 + 500,
-                    easing: 'ease-out',
-                    fill: 'forwards'
-                }).onfinish = () => particle.remove();
-            }
-        }
-
-        function showFlyingText(text, pos) {
-            const div = document.createElement('div');
-            div.className = 'flying-text';
-            div.innerText = text;
-            div.style.left = pos.x + 'px';
-            div.style.top = pos.y + 'px';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 1500);
-        }
-
-        function triggerGameOver() {
-            if (isGameOver) return;
-            isGameOver = true;
-            sound.playGameOver();
-
-            // ハイスコア保存
-            const highScore = localStorage.getItem('ion_highscore') || 0;
-            if (score > highScore) {
-                localStorage.setItem('ion_highscore', score);
-            }
-
-            document.getElementById('final-score').innerText = score;
-            document.getElementById('game-over-modal').style.display = 'flex';
-
-            // ランクイン判定
-            checkRank(score);
-
-            if (spawnTimer) clearTimeout(spawnTimer);
-        }
-
-        window.restartGame = function (retry = false) {
-            if (retry) {
-                // リトライ時はパラメータをつけてリロード
-                const url = new URL(window.location.href);
-                url.searchParams.set('retry', '1');
-                url.searchParams.set('mode', gameMode); // 現在のゲームモードを保持
-                window.location.href = url.toString();
-            } else {
-                // 通常リロード
-                location.reload();
-            }
-        };
-
-        window.goToTitle = function () {
-            // パラメータを消してリロード（タイトル画面へ）
-            const url = new URL(window.location.href);
-            url.searchParams.delete('retry');
-            url.searchParams.delete('mode');
-            window.location.href = url.toString();
-        }
-
-        window.showHelp = function () {
-            document.getElementById('help-modal').style.display = 'flex';
-        }
-
-        // --- ランキングロジック (Firestore) ---
-        async function loadRanking() {
-            if (!db) return;
-            const list = document.getElementById('ranking-list');
-            try {
-                const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(3).get();
-                if (snapshot.empty) {
-                    list.innerHTML = '<div class="ranking-row"><span class="rank-name">No Data</span></div>';
+            // インタラクション
+            function handleIonClick(body) {
+                // すでに選択済みなら選択解除
+                const idx = selectedBodies.indexOf(body);
+                if (idx !== -1) {
+                    selectedBodies.splice(idx, 1);
                     return;
                 }
 
-                let html = '';
-                let rank = 1;
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const rankClass = rank <= 3 ? `rank-${rank}` : '';
-                    html += `
+                const ionInfo = body.plugin.ionData;
+
+                // 制限緩和: 同符号でも選択可能にするため、ここでの極性チェックは削除
+                selectedBodies.push(body);
+
+                // 正味電荷の計算
+                let netCharge = 0;
+                selectedBodies.forEach(b => netCharge += b.plugin.ionData.charge);
+
+                if (netCharge === 0) {
+                    // 厳密な結合チェック: 陽イオン・陰イオンはそれぞれ1種類でなければならない
+                    const cations = selectedBodies.filter(b => b.plugin.ionData.type === 'cation');
+                    const anions = selectedBodies.filter(b => b.plugin.ionData.type === 'anion');
+
+                    const cationTypes = new Set(cations.map(b => b.plugin.ionData.formula));
+                    const anionTypes = new Set(anions.map(b => b.plugin.ionData.formula));
+
+                    if (cationTypes.size > 1 || anionTypes.size > 1) {
+                        showElectronSpeech("種類が混ざってるよ！😖");
+                        shakeElectron();
+                        sound.playError();
+                        return;
+                    }
+
+                    // 化合物名の生成
+                    let compoundName = "";
+                    if (cations.length > 0 && anions.length > 0) {
+                        const cationName = cations[0].plugin.ionData.baseName;
+                        const anionName = anions[0].plugin.ionData.baseName;
+                        compoundName = anionName + cationName;
+                    }
+
+                    // 沈殿判定 (Hardモードのみ)
+                    let isPrecipitate = false;
+                    if (gameMode === 'hard' && cations.length > 0 && anions.length > 0) {
+                        const cationFormula = cations[0].plugin.ionData.formula; // 代表イオンで判定
+                        const anionFormula = anions[0].plugin.ionData.formula;
+
+                        // 沈殿判定ロジック
+                        // Na+, NH4+: 常に溶解 (沈殿なし)
+                        // Ag+: Cl, SO4, O, CO3, OH すべて沈殿 (AgNO3などは無いので)
+                        // Ca2+: Cl以外は沈殿 (CaSO4, CaO, CaCO3, Ca(OH)2)
+                        // Cu2+, Mg2+, Al3+: Cl, SO4以外は沈殿 (酸化物, 炭酸塩, 水酸化物)
+
+                        if (cationFormula === "Na⁺" || cationFormula === "NH₄⁺") {
+                            isPrecipitate = false;
+                        } else if (cationFormula === "Ag⁺") {
+                            isPrecipitate = true; // 今回の陰イオンリストなら全て沈殿
+                        } else if (cationFormula === "Ca²⁺") {
+                            isPrecipitate = (anionFormula !== "Cl⁻");
+                        } else if (["Cu²⁺", "Mg²⁺", "Al³⁺"].includes(cationFormula)) {
+                            // 塩化物、硫酸塩は可溶。それ以外(酸化物, 炭酸塩, 水酸化物)は沈殿
+                            if (anionFormula === "Cl⁻" || anionFormula === "SO₄²⁻") {
+                                isPrecipitate = false;
+                            } else {
+                                isPrecipitate = true;
+                            }
+                        }
+                    }
+
+                    if (isPrecipitate) {
+                        // 沈殿生成（結晶化）
+                        const x = selectedBodies.reduce((sum, b) => sum + b.position.x, 0) / selectedBodies.length;
+                        const y = selectedBodies.reduce((sum, b) => sum + b.position.y, 0) / selectedBodies.length;
+
+                        // 選択されたイオンの半径の合計に基づいて結晶のサイズを決定
+                        let totalRadius = selectedBodies.reduce((sum, b) => sum + b.circleRadius, 0);
+                        // サイズを1.5倍に拡大 (req: 今の1.5倍)
+                        // 元: totalRadius * 0.8 -> 新: totalRadius * 0.8 * 1.5 = totalRadius * 1.2
+                        const size = totalRadius * 1.2;
+
+                        const crystal = Bodies.rectangle(x, y, size, size, {
+                            label: 'crystal',
+                            restitution: 0.2,
+                            friction: 0.8,
+                            density: 0.05, // 重くする
+                            render: {
+                                fillStyle: '#7f8c8d', // 結晶の色
+                                strokeStyle: '#2c3e50',
+                                lineWidth: 2
+                            }
+                        });
+                        crystal.hp = 10;
+                        crystal.maxHp = 10;
+
+                        World.add(engine.world, crystal);
+
+                        // 元のイオンを削除
+                        selectedBodies.forEach(b => {
+                            World.remove(engine.world, b);
+                        });
+
+                        sound.playError(); // 重厚感のある音の代わりにerror音を代用
+                        showCompoundName(compoundName + " (沈殿!)");
+                    } else {
+                        sound.playCombine();
+
+                        // スコア計算 (まとめ消しボーナス強化、ただし基本点は半減)
+                        // トータル = (length * 50) * length (multiplier) = 50 * length^2
+                        let points = selectedBodies.length * 50;
+
+                        // 結晶格子ボーナス（接触ボーナス）
+                        let contactBonus = 0;
+                        let connections = 0;
+                        for (let i = 0; i < selectedBodies.length; i++) {
+                            for (let j = i + 1; j < selectedBodies.length; j++) {
+                                const idA = selectedBodies[i].id;
+                                const idB = selectedBodies[j].id;
+                                const key = idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`;
+                                if (activePairs.has(key)) {
+                                    connections++;
+                                }
+                            }
+                        }
+
+                        if (connections > 0) {
+                            contactBonus = connections * 25; // ボーナスも半減
+                            showFlyingText(`結晶ボーナス +${contactBonus}!`, selectedBodies[0].position);
+                        }
+
+                        // 複雑性ボーナス (乗数)
+                        const multiplier = Math.max(1, selectedBodies.length); // length - 1 ではなく length をそのまま乗数にする（二乗効果）
+                        const baseTotal = (points + contactBonus) * multiplier;
+
+                        // レベル（称号）によるスコア倍率適用
+                        const totalAdd = Math.floor(baseTotal * currentScoreMultiplier);
+
+                        score += totalAdd;
+
+                        // ボールの削除
+                        selectedBodies.forEach(b => {
+                            World.remove(engine.world, b);
+                        });
+
+                        showCompoundName(compoundName);
+                    }
+
+                    updateScore();
+                    checkTitle();
+                    successClear(); // エフェクトと電子くんの処理
+                    const sign = netCharge > 0 ? '+' : '';
+                    showElectronSpeech(`現在の電荷: ${sign}${netCharge}`);
+                    sound.playSelect();
+
+                    selectedBodies = []; // 選択解除
+                }
+            }
+
+            function successClear() {
+                // スコア計算は handleIonClick 側に移動したのでここでは行わない
+                // と言いたいところだが、handleIonClick 側の変更で successClear を呼んでいるので
+                // successClear 内の古いスコア計算を削除する必要がある。
+
+                // エフェクト
+                showElectronSpeech("ナイス結合！✨");
+                jumpElectron();
+            }
+
+            function showCompoundName(name) {
+                const el = document.getElementById('compound-name-display');
+                // スマホ画面に収まるよう、「生成！」の前で改行を入れる
+                el.innerHTML = name + "<span style='font-size:0.8em; display:block; margin-top:5px;'>生成！</span>";
+                el.style.opacity = '1';
+                el.style.transform = 'translate(-50%, -50%) scale(1.2)';
+
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                }, 1000);
+            }
+
+            function updateScore() {
+                const scoreEl = document.getElementById('score-val');
+                scoreEl.innerText = Math.floor(score);
+                scoreEl.style.transform = "scale(1.5)";
+                setTimeout(() => scoreEl.style.transform = "scale(1)", 200);
+            }
+
+            function checkTitle() {
+                const titleEl = document.getElementById('title-val');
+                const speedEl = document.getElementById('speed-val');
+                let currentTitle = TITLES[0].title;
+                let newInterval = TITLES[0].interval;
+                let level = 1;
+
+                TITLES.forEach((t, i) => {
+                    if (score >= t.score) {
+                        currentTitle = t.title;
+                        newInterval = t.interval;
+                        currentScoreMultiplier = t.scoreMult;
+                        level = i + 1;
+                    }
+                });
+
+                // 難易度更新（スピードアップ）
+                if (currentSpawnInterval !== newInterval) {
+                    currentSpawnInterval = newInterval;
+                    showFlyingText("スピードアップ！⚡️", { x: window.innerWidth / 2, y: window.innerHeight / 2 - 50 });
+                }
+
+                // スピード表示更新
+                speedEl.innerText = "Lv." + level;
+
+                let displayTitle = currentTitle;
+                if (gameMode === 'hard') {
+                    displayTitle += " (Hard)";
+                }
+
+                if (titleEl.innerText !== displayTitle) {
+                    titleEl.innerText = displayTitle;
+                    showFlyingText("称号アップ！", { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+                }
+            }
+
+            // UIヘルパー関数
+            function showElectronSpeech(text) {
+                const el = document.getElementById('electron-speech');
+                el.innerText = text;
+                el.style.opacity = 1;
+
+                if (el.hideTimeout) clearTimeout(el.hideTimeout);
+                el.hideTimeout = setTimeout(() => {
+                    el.style.opacity = 0;
+                }, 2000);
+            }
+
+            function shakeElectron() {
+                const el = document.getElementById('electron-kun');
+                el.style.transform = "translateX(5px)";
+                setTimeout(() => el.style.transform = "translateX(-5px)", 50);
+                setTimeout(() => el.style.transform = "translateX(5px)", 100);
+                setTimeout(() => el.style.transform = "translateX(0)", 150);
+            }
+
+            function jumpElectron() {
+                const el = document.getElementById('electron-kun');
+                el.style.transform = "translateY(-20px)";
+                setTimeout(() => el.style.transform = "translateY(0)", 200);
+            }
+
+            function createParticles(x, y, count, color) {
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.backgroundColor = color;
+                    particle.style.left = `${x + (Math.random() - 0.5) * 10}px`;
+                    particle.style.top = `${y + (Math.random() - 0.5) * 10}px`;
+                    document.body.appendChild(particle);
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = (Math.random() * 50 + 20) * scaleFactor;
+                    const translateX = Math.cos(angle) * distance;
+                    const translateY = Math.sin(angle) * distance;
+
+                    particle.animate([
+                        { transform: `translate(0, 0) scale(${scaleFactor})`, opacity: 1 },
+                        { transform: `translate(${translateX}px, ${translateY}px) scale(0)`, opacity: 0 }
+                    ], {
+                        duration: Math.random() * 500 + 500,
+                        easing: 'ease-out',
+                        fill: 'forwards'
+                    }).onfinish = () => particle.remove();
+                }
+            }
+
+            function showFlyingText(text, pos) {
+                const div = document.createElement('div');
+                div.className = 'flying-text';
+                div.innerText = text;
+                div.style.left = pos.x + 'px';
+                div.style.top = pos.y + 'px';
+                document.body.appendChild(div);
+                setTimeout(() => div.remove(), 1500);
+            }
+
+            function triggerGameOver() {
+                if (isGameOver) return;
+                isGameOver = true;
+                sound.playGameOver();
+
+                // ハイスコア保存
+                const highScore = localStorage.getItem('ion_highscore') || 0;
+                if (score > highScore) {
+                    localStorage.setItem('ion_highscore', score);
+                }
+
+                document.getElementById('final-score').innerText = score;
+                document.getElementById('game-over-modal').style.display = 'flex';
+
+                // ランクイン判定
+                checkRank(score);
+
+                if (spawnTimer) clearTimeout(spawnTimer);
+            }
+
+            window.restartGame = function (retry = false) {
+                if (retry) {
+                    // リトライ時はパラメータをつけてリロード
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('retry', '1');
+                    url.searchParams.set('mode', gameMode); // 現在のゲームモードを保持
+                    window.location.href = url.toString();
+                } else {
+                    // 通常リロード
+                    location.reload();
+                }
+            };
+
+            window.goToTitle = function () {
+                // パラメータを消してリロード（タイトル画面へ）
+                const url = new URL(window.location.href);
+                url.searchParams.delete('retry');
+                url.searchParams.delete('mode');
+                window.location.href = url.toString();
+            }
+
+            window.showHelp = function () {
+                document.getElementById('help-modal').style.display = 'flex';
+            }
+
+            // --- ランキングロジック (Firestore) ---
+            async function loadRanking() {
+                if (!db) return;
+                const list = document.getElementById('ranking-list');
+                try {
+                    const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(3).get();
+                    if (snapshot.empty) {
+                        list.innerHTML = '<div class="ranking-row"><span class="rank-name">No Data</span></div>';
+                        return;
+                    }
+
+                    let html = '';
+                    let rank = 1;
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const rankClass = rank <= 3 ? `rank-${rank}` : '';
+                        html += `
                         <div class="ranking-row ${rankClass}">
                             <span class="rank-num">${rank}</span>
                             <span class="rank-name">${escapeHtml(data.name)}</span>
                             <span class="rank-score">${data.score}</span>
                         </div>`;
-                    rank++;
-                });
-                list.innerHTML = html;
-            } catch (e) {
-                console.error("Error loading ranking:", e);
-                list.innerHTML = '<div class="ranking-row"><span class="rank-name">Error</span></div>';
-            }
-        }
-
-        async function checkRank(score) {
-            if (!db) return;
-            if (score === 0) return; // 0点は登録不可
-
-            try {
-                const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(3).get();
-                // データが3件未満、または3位のスコアより高い場合
-                if (snapshot.size < 3 || score > snapshot.docs[snapshot.size - 1].data().score) {
-                    document.getElementById('name-input-section').style.display = 'flex';
-                }
-            } catch (e) {
-                console.error("Error checking rank:", e);
-            }
-        }
-
-        async function registerRank() {
-            if (!db) return;
-            const nameInput = document.getElementById('player-name-input');
-            const name = nameInput.value.trim() || "名無し";
-
-            try {
-                await db.collection('scores').add({
-                    name: name,
-                    score: score,
-                    title: document.getElementById('title-val').innerText,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                alert("ランキングに登録しました！");
-                document.getElementById('name-input-section').style.display = 'none';
-                loadRanking(); // 再読み込み
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                alert("登録エラーが発生しました");
-            }
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"']/g, function (m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
-        }
-
-        // --- 中断・再開 (Save & Resume) ---
-        const SAVE_KEY = 'ion_save_state';
-
-        function checkSaveData() {
-            const data = localStorage.getItem(SAVE_KEY);
-            const resumeBtn = document.getElementById('resume-btn');
-            if (data) {
-                resumeBtn.style.display = 'block';
-            } else {
-                resumeBtn.style.display = 'none';
-            }
-        }
-
-        function suspendGame() {
-            saveGame();
-            goToTitle();
-        }
-
-        function saveGame() {
-            if (isGameOver) return; // ゲームオーバー時は保存しない
-
-            const bodies = Composite.allBodies(engine.world).filter(b =>
-                !b.isStatic && (b.label.startsWith('ion') || b.label === 'crystal')
-            );
-
-            const entities = bodies.map(b => ({
-                label: b.label,
-                x: b.position.x,
-                y: b.position.y,
-                angle: b.angle,
-                velocity: b.velocity,
-                angularVelocity: b.angularVelocity,
-                ionData: b.plugin.ionData, // イオンの場合
-                hp: b.plugin.hp, // クリスタルの場合
-                maxHp: b.plugin.maxHp,
-                circleRadius: b.circleRadius || 0, // 円の半径
-                width: b.bounds.max.x - b.bounds.min.x, // 矩形サイズ（概算）
-                height: b.bounds.max.y - b.bounds.min.y
-            }));
-
-            const saveData = {
-                score: score,
-                gameMode: gameMode,
-                nextIonIndex: nextIonIndex,
-                scaleFactor: scaleFactor, // 保存時のスケール
-                entities: entities,
-                timestamp: Date.now()
-            };
-
-            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-            // alert('中断データを保存しました');
-        }
-
-        function loadGame() {
-            const json = localStorage.getItem(SAVE_KEY);
-            if (!json) return;
-
-            const data = JSON.parse(json);
-
-            // 基礎初期化
-            initGame(data.gameMode);
-
-            // 少し待ってから復元（initGameの処理完了を確実にするため）
-            setTimeout(() => {
-                restoreState(data);
-            }, 50);
-        }
-
-        function restoreState(data) {
-            // スコア復元
-            score = data.score;
-            document.getElementById('score-val').innerText = score;
-            checkTitle();
-
-            // Next Ion復元
-            nextIonIndex = data.nextIonIndex;
-            updateNextIonDisplay();
-
-            // スケール補正率
-            const currentScale = scaleFactor;
-            const savedScale = data.scaleFactor || 1;
-            const ratio = currentScale / savedScale;
-
-            // 既存の動的オブジェクト（もしあれば）を削除
-            const currentBodies = Composite.allBodies(engine.world).filter(b => !b.isStatic);
-            World.remove(engine.world, currentBodies);
-
-            // オブジェクト再生成
-            data.entities.forEach(e => {
-                let body;
-                const x = e.x * ratio;
-                const y = e.y * ratio;
-
-                if (e.label.startsWith('ion')) {
-                    // イオン
-                    const radius = e.circleRadius * ratio;
-                    body = Bodies.circle(x, y, radius, {
-                        restitution: 0.9,
-                        friction: 0.005,
-                        label: e.label,
-                        angle: e.angle,
-                        plugin: { ionData: e.ionData },
-                        render: {
-                            fillStyle: e.ionData.color,
-                            strokeStyle: 'white',
-                            lineWidth: 2
-                        }
+                        rank++;
                     });
-                } else if (e.label === 'crystal') {
-                    // クリスタル (短辺を基準にサイズ復元)
-                    // Note: 矩形は幅・高さが必要。Boundsから取得した値を利用
-                    const w = e.width * ratio;
-                    const h = e.height * ratio;
-                    body = Bodies.rectangle(x, y, w, h, {
-                        isStatic: false,
-                        restitution: 0.2,
-                        friction: 0.8,
-                        density: 0.05,
-                        label: 'crystal',
-                        angle: e.angle,
-                        plugin: { hp: e.hp, maxHp: e.maxHp },
-                        render: {
-                            fillStyle: '#7f8c8d',
-                            strokeStyle: '#2c3e50',
-                            lineWidth: 2
-                        }
-                    });
-                }
-
-                if (body) {
-                    Body.setVelocity(body, { x: e.velocity.x * ratio, y: e.velocity.y * ratio });
-                    Body.setAngularVelocity(body, e.angularVelocity);
-                    World.add(engine.world, body);
-                }
-            });
-
-            // UI更新
-            document.getElementById('title-screen').style.display = 'none';
-            // 再開後はセーブデータを消す（1回限り） -> 仕様によるが、今回は残す？
-            // 通常は「再開したら消す」のが一般的（リセット対策）
-            // ただし、モバイルブラウザなどで落ちた場合を考えると「完了・ゲームオーバーまで残す」もアリ。
-            // ここでは「中断」の意図を汲んで、ロードしたら消去する。
-            localStorage.removeItem(SAVE_KEY);
-            checkSaveData(); // ボタン非表示
-        }
-
-        // 初期化時にランキング読み込み & セーブデータ確認
-        window.addEventListener('load', () => {
-            loadRanking();
-            checkSaveData();
-        });
-
-        window.hideHelp = function () {
-            document.getElementById('help-modal').style.display = 'none';
-        }
-
-        // リサイズ時の処理
-        window.addEventListener('resize', () => {
-            // キャンバスサイズのリセットが必要だが、現在はリロード推奨
-            // location.reload();
-        });
-
-        // 開始処理
-        window.addEventListener('load', () => {
-            console.log("スクリプト開始: ウィンドウロード完了");
-
-            // ranking system replaced high score display
-
-            // URLパラメータチェック (リトライかどうか)
-            const urlParams = new URLSearchParams(window.location.search);
-            const isRetry = urlParams.get('retry') === '1';
-            const storedMode = urlParams.get('mode') || 'normal';
-
-            if (isRetry) {
-                // リトライ時はタイトルを非表示にして即スタート
-                document.getElementById('title-screen').style.display = 'none';
-                // AudioContextの開始はユーザーアクションが必要な場合があるが、
-                // リロード直後なのでクリックが必要かもしれない。
-                // ただし、リロード前のクリックが有効な場合もある。
-                // とりあえず開始を試みる
-                setTimeout(() => {
-                    initGame(storedMode); // 直接initGameを呼ぶ
-                }, 100);
-            }
-
-            // スタートボタン
-            document.getElementById('start-btn').addEventListener('click', () => {
-                document.getElementById('title-screen').style.display = 'none';
-                startGameLogic();
-            });
-
-            function startGameLogic() {
-                // Matter.jsチェックと開始
-                try {
-                    if (typeof Matter === 'undefined') {
-                        throw new Error("Matter.js not loaded");
-                    }
-                    // AudioContextの開始
-                    if (sound.ctx.state === 'suspended') sound.ctx.resume().catch(e => console.log("Audio resume waiting for interaction"));
-
-                    initGame();
-                    setupRenderEvents();
+                    list.innerHTML = html;
                 } catch (e) {
-                    console.error("ゲーム開始エラー:", e);
-                    alert("エラー: Matter.js が読み込まれていません。");
+                    console.error("Error loading ranking:", e);
+                    list.innerHTML = '<div class="ranking-row"><span class="rank-name">Error</span></div>';
                 }
             }
-        });
 
+            async function checkRank(score) {
+                if (!db) return;
+                if (score === 0) return; // 0点は登録不可
+
+                try {
+                    const snapshot = await db.collection('scores').orderBy('score', 'desc').limit(3).get();
+                    // データが3件未満、または3位のスコアより高い場合
+                    if (snapshot.size < 3 || score > snapshot.docs[snapshot.size - 1].data().score) {
+                        document.getElementById('name-input-section').style.display = 'flex';
+                    }
+                } catch (e) {
+                    console.error("Error checking rank:", e);
+                }
+            }
+
+            async function registerRank() {
+                if (!db) return;
+                const nameInput = document.getElementById('player-name-input');
+                const name = nameInput.value.trim() || "名無し";
+
+                try {
+                    await db.collection('scores').add({
+                        name: name,
+                        score: score,
+                        title: document.getElementById('title-val').innerText,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    alert("ランキングに登録しました！");
+                    document.getElementById('name-input-section').style.display = 'none';
+                    loadRanking(); // 再読み込み
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                    alert("登録エラーが発生しました");
+                }
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>"']/g, function (m) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#039;'
+                    }[m];
+                });
+            }
+
+            // --- 中断・再開 (Save & Resume) ---
+            const SAVE_KEY = 'ion_save_state';
+
+            function checkSaveData() {
+                const data = localStorage.getItem(SAVE_KEY);
+                const resumeBtn = document.getElementById('resume-btn');
+                if (data) {
+                    resumeBtn.style.display = 'block';
+                } else {
+                    resumeBtn.style.display = 'none';
+                }
+            }
+
+            function suspendGame() {
+                saveGame();
+                goToTitle();
+            }
+
+            function saveGame() {
+                if (isGameOver) return; // ゲームオーバー時は保存しない
+
+                const bodies = Composite.allBodies(engine.world).filter(b =>
+                    !b.isStatic && (b.label.startsWith('ion') || b.label === 'crystal')
+                );
+
+                const entities = bodies.map(b => ({
+                    label: b.label,
+                    x: b.position.x,
+                    y: b.position.y,
+                    angle: b.angle,
+                    velocity: b.velocity,
+                    angularVelocity: b.angularVelocity,
+                    ionData: b.plugin.ionData, // イオンの場合
+                    hp: b.plugin.hp, // クリスタルの場合
+                    maxHp: b.plugin.maxHp,
+                    circleRadius: b.circleRadius || 0, // 円の半径
+                    width: b.bounds.max.x - b.bounds.min.x, // 矩形サイズ（概算）
+                    height: b.bounds.max.y - b.bounds.min.y
+                }));
+
+                const saveData = {
+                    score: score,
+                    gameMode: gameMode,
+                    nextIonIndex: nextIonIndex,
+                    scaleFactor: scaleFactor, // 保存時のスケール
+                    entities: entities,
+                    timestamp: Date.now()
+                };
+
+                const json = JSON.stringify(saveData);
+                const salt = "ION_SECRET_SALT_2026"; // 秘密のソルト
+                const hash = simpleHash(json + salt);
+                const combined = json + "|" + hash;
+
+                // Base64エンコード (日本語対応)
+                try {
+                    const encoded = btoa(unescape(encodeURIComponent(combined)));
+                    localStorage.setItem(SAVE_KEY, encoded);
+                    // console.log("セーブ完了 (保護済み)");
+                } catch (e) {
+                    console.error("セーブ失敗:", e);
+                }
+            }
+
+            // 簡易ハッシュ関数 (DJB2)
+            function simpleHash(str) {
+                let hash = 5381;
+                for (let i = 0; i < str.length; i++) {
+                    hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
+                }
+                return hash.toString();
+            }
+
+            function loadGame() {
+                const encoded = localStorage.getItem(SAVE_KEY);
+                if (!encoded) return;
+
+                try {
+                    // Base64デコード
+                    const combined = decodeURIComponent(escape(atob(encoded)));
+                    const parts = combined.split('|');
+                    if (parts.length !== 2) {
+                        throw new Error("Invalid save data format");
+                    }
+                    const [json, hash] = parts;
+
+                    // 改ざんチェック
+                    const salt = "ION_SECRET_SALT_2026";
+                    const calculatedHash = simpleHash(json + salt);
+
+                    if (hash !== calculatedHash) {
+                        throw new Error("Hash mismatch");
+                    }
+
+                    const data = JSON.parse(json);
+
+                    // 基礎初期化
+                    initGame(data.gameMode);
+
+                    // 少し待ってから復元（initGameの処理完了を確実にするため）
+                    setTimeout(() => {
+                        restoreState(data);
+                    }, 50);
+
+                } catch (e) {
+                    console.warn("セーブデータ読み込みエラー（改ざん検知）:", e);
+                    localStorage.removeItem(SAVE_KEY);
+                    alert("セーブデータが破損しているか、改ざんされています。");
+                    checkSaveData(); // ボタン非表示
+                }
+            }
+
+            function restoreState(data) {
+                // スコア復元
+                score = data.score;
+                document.getElementById('score-val').innerText = score;
+                checkTitle();
+
+                // Next Ion復元
+                nextIonIndex = data.nextIonIndex;
+                updateNextIonDisplay();
+
+                // スケール補正率
+                const currentScale = scaleFactor;
+                const savedScale = data.scaleFactor || 1;
+                const ratio = currentScale / savedScale;
+
+                // 既存の動的オブジェクト（もしあれば）を削除
+                const currentBodies = Composite.allBodies(engine.world).filter(b => !b.isStatic);
+                World.remove(engine.world, currentBodies);
+
+                // オブジェクト再生成
+                data.entities.forEach(e => {
+                    let body;
+                    const x = e.x * ratio;
+                    const y = e.y * ratio;
+
+                    if (e.label.startsWith('ion')) {
+                        // イオン
+                        const radius = e.circleRadius * ratio;
+                        body = Bodies.circle(x, y, radius, {
+                            restitution: 0.9,
+                            friction: 0.005,
+                            label: e.label,
+                            angle: e.angle,
+                            plugin: { ionData: e.ionData },
+                            render: {
+                                fillStyle: e.ionData.color,
+                                strokeStyle: 'white',
+                                lineWidth: 2
+                            }
+                        });
+                    } else if (e.label === 'crystal') {
+                        // クリスタル (短辺を基準にサイズ復元)
+                        // Note: 矩形は幅・高さが必要。Boundsから取得した値を利用
+                        const w = e.width * ratio;
+                        const h = e.height * ratio;
+                        body = Bodies.rectangle(x, y, w, h, {
+                            isStatic: false,
+                            restitution: 0.2,
+                            friction: 0.8,
+                            density: 0.05,
+                            label: 'crystal',
+                            angle: e.angle,
+                            plugin: { hp: e.hp, maxHp: e.maxHp },
+                            render: {
+                                fillStyle: '#7f8c8d',
+                                strokeStyle: '#2c3e50',
+                                lineWidth: 2
+                            }
+                        });
+                    }
+
+                    if (body) {
+                        Body.setVelocity(body, { x: e.velocity.x * ratio, y: e.velocity.y * ratio });
+                        Body.setAngularVelocity(body, e.angularVelocity);
+                        World.add(engine.world, body);
+                    }
+                });
+
+                // UI更新
+                document.getElementById('title-screen').style.display = 'none';
+                // 再開後はセーブデータを消す（1回限り） -> 仕様によるが、今回は残す？
+                // 通常は「再開したら消す」のが一般的（リセット対策）
+                // ただし、モバイルブラウザなどで落ちた場合を考えると「完了・ゲームオーバーまで残す」もアリ。
+                // ここでは「中断」の意図を汲んで、ロードしたら消去する。
+                localStorage.removeItem(SAVE_KEY);
+                checkSaveData(); // ボタン非表示
+            }
+
+            // 初期化時にランキング読み込み & セーブデータ確認
+            window.addEventListener('load', () => {
+                loadRanking();
+                checkSaveData();
+            });
+
+            window.hideHelp = function () {
+                document.getElementById('help-modal').style.display = 'none';
+            }
+
+            // リサイズ時の処理
+            window.addEventListener('resize', () => {
+                // キャンバスサイズのリセットが必要だが、現在はリロード推奨
+                // location.reload();
+            });
+
+            // 開始処理
+            window.addEventListener('load', () => {
+                console.log("スクリプト開始: ウィンドウロード完了");
+
+                // ranking system replaced high score display
+
+                // URLパラメータチェック (リトライかどうか)
+                const urlParams = new URLSearchParams(window.location.search);
+                const isRetry = urlParams.get('retry') === '1';
+                const storedMode = urlParams.get('mode') || 'normal';
+
+                if (isRetry) {
+                    // リトライ時はタイトルを非表示にして即スタート
+                    document.getElementById('title-screen').style.display = 'none';
+                    // AudioContextの開始はユーザーアクションが必要な場合があるが、
+                    // リロード直後なのでクリックが必要かもしれない。
+                    // ただし、リロード前のクリックが有効な場合もある。
+                    // とりあえず開始を試みる
+                    setTimeout(() => {
+                        initGame(storedMode); // 直接initGameを呼ぶ
+                    }, 100);
+                }
+
+                // スタートボタン
+                document.getElementById('start-btn').addEventListener('click', () => {
+                    document.getElementById('title-screen').style.display = 'none';
+                    startGameLogic();
+                });
+
+                function startGameLogic() {
+                    // Matter.jsチェックと開始
+                    try {
+                        if (typeof Matter === 'undefined') {
+                            throw new Error("Matter.js not loaded");
+                        }
+                        // AudioContextの開始
+                        if (sound.ctx.state === 'suspended') sound.ctx.resume().catch(e => console.log("Audio resume waiting for interaction"));
+
+                        initGame();
+                        setupRenderEvents();
+                    } catch (e) {
+                        console.error("ゲーム開始エラー:", e);
+                        alert("エラー: Matter.js が読み込まれていません。");
+                    }
+                }
+            });
+
+            // --- 外部公開関数 ---
+            window.initGame = initGame;
+            window.loadGame = loadGame;
+            window.suspendGame = suspendGame;
+            window.showHelp = showHelp;
+            window.hideHelp = hideHelp;
+            window.goToTitle = goToTitle;
+            window.restartGame = restartGame;
+            window.registerRank = registerRank;
+
+        })();
     </script>
 </body>
 
