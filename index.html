@@ -28,28 +28,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-    <script>
-        // --- Firebase設定 (ユーザーがここに値を貼り付ける) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyACKFsg3RK0DR5_ciEmUuH6KPkoo87KrNM",
-            authDomain: "crystal-builder0802.firebaseapp.com",
-            projectId: "crystal-builder0802",
-            storageBucket: "crystal-builder0802.firebasestorage.app",
-            messagingSenderId: "138379163430",
-            appId: "1:138379163430:web:7d7bad6fda98ff721fb3e7"
-        };
-        // --------------------------------------------------
-
-        // Firebase初期化
-        let db;
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            console.log("Firebase Initialized");
-        } catch (e) {
-            console.warn("Firebase Config not found or invalid. Leaderboard disabled.", e);
-        }
-    </script>
+    <!-- Firebase Config moved to IIFE scope for security -->
     <style>
         body {
             margin: 0;
@@ -497,6 +476,27 @@
     <script>
         (function () {
             "use strict";
+
+            // --- Firebase Config & Init (Scoped) ---
+            // 外部から db 変数へのアクセスを遮断するため、即時関数内で初期化
+            const firebaseConfig = {
+                apiKey: "AIzaSyACKFsg3RK0DR5_ciEmUuH6KPkoo87KrNM",
+                authDomain: "crystal-builder0802.firebaseapp.com",
+                projectId: "crystal-builder0802",
+                storageBucket: "crystal-builder0802.firebasestorage.app",
+                messagingSenderId: "138379163430",
+                appId: "1:138379163430:web:7d7bad6fda98ff721fb3e7"
+            };
+
+            let db;
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                console.log("Firebase Initialized (Protected Scope)");
+            } catch (e) {
+                console.warn("Firebase Config not found or invalid. Leaderboard disabled.", e);
+            }
+            // ---------------------------------------
 
             let gameMode = 'normal'; // 'normal' or 'hard'
             let IONS = []; // 現在のモードのイオンリスト
