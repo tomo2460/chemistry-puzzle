@@ -38,6 +38,10 @@
             background-color: #2c3e50;
             color: white;
             touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -59,6 +63,9 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             background: #34495e;
             touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
             /* タッチ操作でのスクロール等を無効化 */
         }
 
@@ -281,6 +288,25 @@
                 opacity: 0;
                 transform: translateY(-50px);
             }
+        }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 1;
+            box-sizing: border-box;
+            border: 8px solid white;
+            /* より太くして目立たせる */
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+            /* 発光エフェクト追加 */
+        }
+
+        .square-particle {
+            position: absolute;
+            pointer-events: none;
+            box-sizing: border-box;
         }
 
         #title-screen {
@@ -724,6 +750,7 @@
                 // Matter.jsのMouseConstraintはWindowsタブレット等でタッチ反応が悪い場合があるため
                 // ネイティブのPointer Eventで制御する
                 render.canvas.addEventListener('pointerdown', function (event) {
+                    event.preventDefault(); // 連打時のダブルタップズームやスクロールなどのデフォルト動作を防止
                     if (isGameOver) return;
 
                     // 座標変換 (Canvasの表示サイズと論理サイズの比率を考慮)
@@ -739,17 +766,15 @@
                     let isClicked = false;
                     for (let b of clickedBodies) {
                         if (b.label === 'crystal') {
-                            b.hp--;
-                            sound.playError(); // 硬い音が良いがとりあえずerror音を代用
-
-                            // パーティクル演出（簡易）
-                            createParticles(x, y, 3, "#7f8c8d");
+                            b.hp--; // 削除してしまったHP減少処理を復旧
+                            sound.playError(); // 叩いた時の音（短いエラー音）は残す（フィードバックのため）
 
                             if (b.hp <= 0) {
                                 World.remove(engine.world, b);
                                 sound.playCombine(); // 破壊音
                                 score += 500; // 破壊ボーナス
-                                createParticles(x, y, 10, "#7f8c8d");
+                                // 沈殿を5x5のブロックに分割して飛び散らせる
+                                createBlockShatter(b.position.x, b.position.y, b.bounds.max.x - b.bounds.min.x, "#7f8c8d", 5);
                                 updateScore();
                             }
                             isClicked = true;
@@ -761,7 +786,12 @@
                             break;
                         }
                     }
-                });
+                }, { passive: false });
+
+                // iOS Safari用: touchstartのデフォルト動作も防ぐ（より確実なズーム防止）
+                render.canvas.addEventListener('touchstart', function (event) {
+                    event.preventDefault();
+                }, { passive: false });
 
                 // 衝突イベント（ボーナス判定用）
                 Events.on(engine, 'collisionStart', function (event) {
@@ -948,9 +978,31 @@
                             ctx.lineWidth = 2;
                             ctx.stroke();
 
-                            // HP表示
+                            // 化学式とHP表示
                             ctx.fillStyle = "white";
-                            ctx.fillText(b.hp, b.position.x, b.position.y);
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+
+                            // 上段に化学式、下段にHPを小さく表示
+                            const formula = b.customFormula || "沈殿";
+
+                            // 文字サイズの動的調整（ブロックの幅を超えないようにする）
+                            const blockWidth = b.bounds.max.x - b.bounds.min.x;
+                            const maxTextWidth = blockWidth * 0.9; // 余裕を持たせる
+                            let fontSize = 24 * scaleFactor;
+                            ctx.font = `bold ${fontSize}px Arial`;
+
+                            // 文字幅がブロック幅を超えるなら縮小
+                            while (ctx.measureText(formula).width > maxTextWidth && fontSize > 8) {
+                                fontSize--;
+                                ctx.font = `bold ${fontSize}px Arial`;
+                            }
+
+                            ctx.fillText(formula, b.position.x, b.position.y - 12 * scaleFactor);
+
+                            ctx.font = `bold ${16 * scaleFactor}px Arial`;
+                            ctx.fillStyle = "#f1c40f"; // HPは黄色っぽくして区別
+                            ctx.fillText(`HP: ${b.hp}`, b.position.x, b.position.y + 16);
                         }
                     }
 
@@ -963,15 +1015,15 @@
             function handleIonClick(body) {
                 // すでに選択済みなら選択解除
                 const idx = selectedBodies.indexOf(body);
+                let isDeselecting = false;
                 if (idx !== -1) {
                     selectedBodies.splice(idx, 1);
-                    return;
+                    isDeselecting = true;
+                } else {
+                    selectedBodies.push(body);
                 }
 
-                const ionInfo = body.plugin.ionData;
-
-                // 制限緩和: 同符号でも選択可能にするため、ここでの極性チェックは削除
-                selectedBodies.push(body);
+                if (selectedBodies.length === 0) return;
 
                 // 正味電荷の計算
                 let netCharge = 0;
@@ -982,13 +1034,17 @@
                     const cations = selectedBodies.filter(b => b.plugin.ionData.type === 'cation');
                     const anions = selectedBodies.filter(b => b.plugin.ionData.type === 'anion');
 
+                    if (cations.length === 0 || anions.length === 0) return;
+
                     const cationTypes = new Set(cations.map(b => b.plugin.ionData.formula));
                     const anionTypes = new Set(anions.map(b => b.plugin.ionData.formula));
 
                     if (cationTypes.size > 1 || anionTypes.size > 1) {
-                        showElectronSpeech("種類が混ざってるよ！😖");
-                        shakeElectron();
-                        sound.playError();
+                        if (!isDeselecting) {
+                            showElectronSpeech("種類が混ざってるよ！😖");
+                            shakeElectron();
+                            sound.playError();
+                        }
                         return;
                     }
 
@@ -1037,7 +1093,8 @@
                         let totalRadius = selectedBodies.reduce((sum, b) => sum + b.circleRadius, 0);
                         // サイズを1.5倍に拡大 (req: 今の1.5倍)
                         // 元: totalRadius * 0.8 -> 新: totalRadius * 0.8 * 1.5 = totalRadius * 1.2
-                        const size = totalRadius * 1.2;
+                        // 化学式を入れるため、さらに少し大きめに確保（最低保証サイズも付与）
+                        const size = Math.max(totalRadius * 1.2, 80 * scaleFactor);
 
                         const crystal = Bodies.rectangle(x, y, size, size, {
                             label: 'crystal',
@@ -1052,11 +1109,14 @@
                         });
                         crystal.hp = 10;
                         crystal.maxHp = 10;
+                        // カスタムプロパティとして生成された化合物名を保持
+                        crystal.customFormula = compoundName;
 
                         World.add(engine.world, crystal);
 
                         // 元のイオンを削除
                         selectedBodies.forEach(b => {
+                            createRipple(b.position.x, b.position.y, b.plugin.ionData.color);
                             World.remove(engine.world, b);
                         });
 
@@ -1099,6 +1159,7 @@
 
                         // ボールの削除
                         selectedBodies.forEach(b => {
+                            createRipple(b.position.x, b.position.y, b.plugin.ionData.color);
                             World.remove(engine.world, b);
                         });
 
@@ -1208,17 +1269,32 @@
                 setTimeout(() => el.style.transform = "translateY(0)", 200);
             }
 
-            function createParticles(x, y, count, color) {
+            function createParticles(x, y, count, color, speedMultiplier = 1.0) {
                 for (let i = 0; i < count; i++) {
                     const particle = document.createElement('div');
                     particle.className = 'particle';
+                    particle.style.position = 'absolute'; // 追加: ドキュメントフローから外し画面ズレを防止
+                    particle.style.pointerEvents = 'none'; // 追加: タップイベントの邪魔をしない
                     particle.style.backgroundColor = color;
+
+                    // パーティクルのサイズをランダムにする
+                    const size = Math.random() * 6 + 6; // 6〜12px
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+
                     particle.style.left = `${x + (Math.random() - 0.5) * 10}px`;
                     particle.style.top = `${y + (Math.random() - 0.5) * 10}px`;
-                    document.body.appendChild(particle);
+                    // body ではなく canvas の親コンテナ (game-container) を基準にする
+                    const container = document.getElementById('game-container');
+                    if (container) {
+                        container.appendChild(particle);
+                    } else {
+                        document.body.appendChild(particle);
+                    }
 
                     const angle = Math.random() * Math.PI * 2;
-                    const distance = (Math.random() * 50 + 20) * scaleFactor;
+                    // 速度倍率を適用、勢いよく飛ばす
+                    const distance = (Math.random() * 50 + 20) * scaleFactor * speedMultiplier;
                     const translateX = Math.cos(angle) * distance;
                     const translateY = Math.sin(angle) * distance;
 
@@ -1226,11 +1302,119 @@
                         { transform: `translate(0, 0) scale(${scaleFactor})`, opacity: 1 },
                         { transform: `translate(${translateX}px, ${translateY}px) scale(0)`, opacity: 0 }
                     ], {
-                        duration: Math.random() * 500 + 500,
-                        easing: 'ease-out',
+                        duration: (Math.random() * 500 + 500) / (speedMultiplier > 1 ? Math.sqrt(speedMultiplier) : 1),
+                        easing: speedMultiplier > 1 ? 'cubic-bezier(0.1, 0.8, 0.2, 1)' : 'ease-out',
                         fill: 'forwards'
                     }).onfinish = () => particle.remove();
                 }
+            }
+
+            function createSquareParticles(x, y, count, color, speedMultiplier = 1.0) {
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'square-particle';
+                    particle.style.backgroundColor = color;
+
+                    const size = Math.random() * 8 + 6; // 6〜14px
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+
+                    particle.style.left = `${x}px`;
+                    particle.style.top = `${y}px`;
+                    const container = document.getElementById('game-container');
+                    if (container) {
+                        container.appendChild(particle);
+                    } else {
+                        document.body.appendChild(particle);
+                    }
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = (Math.random() * 80 + 30) * scaleFactor * speedMultiplier;
+                    const translateX = Math.cos(angle) * distance;
+                    const translateY = Math.sin(angle) * distance;
+
+                    // 回転しながら飛び散る四角形の破片
+                    particle.animate([
+                        { transform: `translate(-50%, -50%) rotate(0deg) scale(${scaleFactor})`, opacity: 1 },
+                        { transform: `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) rotate(${Math.random() * 720 - 360}deg) scale(0)`, opacity: 0 }
+                    ], {
+                        duration: (Math.random() * 600 + 400) / (speedMultiplier > 1 ? Math.sqrt(speedMultiplier) : 1),
+                        easing: speedMultiplier > 1 ? 'cubic-bezier(0.1, 0.8, 0.2, 1)' : 'ease-out',
+                        fill: 'forwards'
+                    }).onfinish = () => particle.remove();
+                }
+            }
+
+            // 沈殿破壊用の5x5ブロック粉砕エフェクト
+            function createBlockShatter(cx, cy, totalSize, color, divisions = 5) {
+                const blockSize = totalSize / divisions;
+                const container = document.getElementById('game-container') || document.body;
+
+                for (let row = 0; row < divisions; row++) {
+                    for (let col = 0; col < divisions; col++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'square-particle';
+                        particle.style.backgroundColor = color;
+                        particle.style.width = `${blockSize}px`;
+                        particle.style.height = `${blockSize}px`;
+
+                        // 各ブロックの初期位置（沈殿の左上を原点としての座標計算）
+                        const startX = cx - (totalSize / 2) + col * blockSize + (blockSize / 2);
+                        const startY = cy - (totalSize / 2) + row * blockSize + (blockSize / 2);
+
+                        particle.style.left = `${startX}px`;
+                        particle.style.top = `${startY}px`;
+                        container.appendChild(particle);
+
+                        // 中心から外側へ向かうベクトル（放射状に飛び散る）
+                        const dx = startX - cx;
+                        const dy = startY - cy;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1; // 0除算防止
+
+                        // 飛び散る距離と回転をランダムに付与
+                        const scatterPower = Math.random() * 100 + 50;
+                        const translateX = (dx / dist) * scatterPower * scaleFactor;
+                        const translateY = (dy / dist) * scatterPower * scaleFactor;
+                        const rotate = Math.random() * 720 - 360;
+
+                        particle.animate([
+                            { transform: `translate(-50%, -50%) rotate(0deg) scale(1)`, opacity: 1 },
+                            { transform: `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) rotate(${rotate}deg) scale(0)`, opacity: 0 }
+                        ], {
+                            duration: Math.random() * 400 + 600,
+                            easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)',
+                            fill: 'forwards'
+                        }).onfinish = () => particle.remove();
+                    }
+                }
+            }
+
+            function createRipple(x, y, color) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                ripple.style.borderColor = color;
+
+                // 初期のサイズ設定
+                const initialSize = 40 * scaleFactor;
+                ripple.style.width = `${initialSize}px`;
+                ripple.style.height = `${initialSize}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                const container = document.getElementById('game-container');
+                if (container) {
+                    container.appendChild(ripple);
+                } else {
+                    document.body.appendChild(ripple);
+                }
+
+                ripple.animate([
+                    { transform: `translate(-50%, -50%) scale(0.5)`, opacity: 1 },
+                    { transform: `translate(-50%, -50%) scale(3.5)`, opacity: 0 }
+                ], {
+                    duration: 600,
+                    easing: 'ease-out',
+                    fill: 'forwards'
+                }).onfinish = () => ripple.remove();
             }
 
             function showFlyingText(text, pos) {
